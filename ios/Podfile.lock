@@ -1,0 +1,46 @@
+PODS:
+  - Flutter (1.0.0)
+  - flutter_native_splash (0.0.1):
+    - Flutter
+  - google_maps_flutter_ios (0.0.1):
+    - Flutter
+    - GoogleMaps (< 10.0, >= 8.4)
+  - GoogleMaps (8.4.0):
+    - GoogleMaps/Maps (= 8.4.0)
+  - GoogleMaps/Base (8.4.0)
+  - GoogleMaps/Maps (8.4.0):
+    - GoogleMaps/Base
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - flutter_native_splash (from `.symlinks/plugins/flutter_native_splash/ios`)
+  - google_maps_flutter_ios (from `.symlinks/plugins/google_maps_flutter_ios/ios`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
+
+SPEC REPOS:
+  trunk:
+    - GoogleMaps
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  flutter_native_splash:
+    :path: ".symlinks/plugins/flutter_native_splash/ios"
+  google_maps_flutter_ios:
+    :path: ".symlinks/plugins/google_maps_flutter_ios/ios"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
+
+SPEC CHECKSUMS:
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  flutter_native_splash: 35ddbc7228eafcb3969dcc5f1fbbe27c1145a4f0
+  google_maps_flutter_ios: be1b329323e0ed8911ff3c3b405b08ec2b649a14
+  GoogleMaps: 8939898920281c649150e0af74aa291c60f2e77d
+  shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
+
+PODFILE CHECKSUM: 1959d098c91d8a792531a723c4a9d7e9f6a01e38
+
+COCOAPODS: 1.16.2
