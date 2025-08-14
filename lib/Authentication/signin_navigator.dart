@@ -10,7 +10,6 @@ GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 class SignInRoutes {
   static const String signInRoot = 'signIn/';
   static const String signUp = 'login/signUp';
-  static const String verification = 'login/verification';
   static const String socialLogin = 'login/social_login';
 }
 
@@ -44,13 +43,7 @@ class SignInNavigator extends StatelessWidget {
             case SignInRoutes.signUp:
               builder = (BuildContext _) => const RegisterPage();
               break;
-            case SignInRoutes.verification:
-              builder =
-                  (BuildContext _) => VerificationPage(onVerificationDone: () {
-                        Navigator.popAndPushNamed(
-                            context, PageRoutes.bottomNavigation); // Navigate to the main app page
-                      });
-              break;
+
             case SignInRoutes.socialLogin:
               builder = (BuildContext _) => const SocialSignUpPage();
               break;

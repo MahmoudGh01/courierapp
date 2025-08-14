@@ -110,8 +110,7 @@ class _SocialSignUpBodyState extends State<SocialSignUpBody> {
                       radius: const BorderRadius.only(
                         topLeft: Radius.circular(35.0),
                       ),
-                      onPressed: () => Navigator.pushNamed(
-                          context, SignInRoutes.verification),
+                      onPressed: () {},
                     ),
                   ),
                 ],

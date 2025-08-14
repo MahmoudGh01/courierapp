@@ -31,21 +31,49 @@ class AuthService extends GetxController {
   }
 
   Future<void> signUpUser({
+    required BuildContext context,
     required String email,
     required String name,
     required String password,
+    required String phoneNumber,
+    required bool isCompany,
+    String? companyName,
+    String? companyRegistrationNumber,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('${Constants.uri}/signup'),
+      final payload = {
+        'email': email.trim(),
+        'name': name.trim(),
+        'password': password,
+        'phoneNumber': phoneNumber.trim(),
+        'isCompany': isCompany,
+        // only include company fields if isCompany == true and not empty
+        if (isCompany && (companyName?.trim().isNotEmpty ?? false))
+          'companyName': companyName!.trim(),
+        if (isCompany && (companyRegistrationNumber?.trim().isNotEmpty ?? false))
+          'companyRegistrationNumber': companyRegistrationNumber!.trim(),
+      };
+
+      final res = await http.post(
+        Uri.parse('${Constants.uri}auth/signup'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password, 'name': name}),
+        body: jsonEncode(payload),
       );
-      print('Sign-up response: ${response.body}');
+
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        showSnackBar(context, 'Account created. Please check your email to verify your account.');
+        navigatorKey.currentState?.pushReplacementNamed(SignInRoutes.signInRoot);
+      } else {
+        final body = res.body.isNotEmpty ? jsonDecode(res.body) : {};
+        final msg = body['message']?.toString() ?? 'Sign-up failed (${res.statusCode})';
+        showSnackBar(context, msg);
+      }
     } catch (e) {
-      print('Sign-up error: $e');
+      showSnackBar(context, 'Sign-up error: $e');
     }
   }
+
+
 
   Future<void> signInUser({
     required BuildContext context,
@@ -56,29 +84,31 @@ class AuthService extends GetxController {
   }) async {
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final response = await http.post(
+      final res = await http.post(
         Uri.parse('${Constants.uri}auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'password': password}),
       );
 
-      httpErrorHandling(
-        response: response,
-        context: context,
-        onSuccess: () async {
-          final data = jsonDecode(response.body);
-          userProvider.setUser(data['user']);
-          print(userProvider.user.toJson());
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        userProvider.setUser(data['user']);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', data['token']);
+        await prefs.setBool('isLoggedIn', true);
+        isAuthenticated.value = true;
+        onLoginSuccess();
+      } else {
+        final body = res.body.isNotEmpty ? jsonDecode(res.body) : {};
+        final msg = body['detail']?.toString() ?? 'Login failed (${res.statusCode})';
 
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('token', data['token']);
-          //await prefs.setString('refresh', data['refresh']);
-          await prefs.setBool('isLoggedIn', true);
-
-          isAuthenticated.value = true;
-          onLoginSuccess();
-        },
-      );
+        // Common backend message for unverified users
+        if (msg.toLowerCase().contains('not verified')) {
+          showSnackBar(context, 'Please verify your email before logging in.');
+        } else {
+          showSnackBar(context, msg);
+        }
+      }
 
     } catch (e) {
       showSnackBar(context, e.toString());
