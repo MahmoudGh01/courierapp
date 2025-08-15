@@ -12,6 +12,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:provider/provider.dart';
 
+import 'Authentication/auth_wrapper.dart';
 import 'ViewModels/userprovider.dart'; // Make sure this path is correct
 
 void main() async {
@@ -66,7 +67,7 @@ class MyApp extends StatelessWidget {
           Locale('ro'),
           Locale('de'),
         ],
-        home: const SignInNavigator(),
+        home: const AuthWrapper(),   // ⬅️ replace: was SignInNavigator()
         routes: PageRoutes().routes(),
       ),
     );

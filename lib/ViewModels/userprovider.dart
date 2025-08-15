@@ -49,22 +49,20 @@ class UserProvider extends ChangeNotifier {
 
   Future<bool> refreshToken() async {
     final prefs = await SharedPreferences.getInstance();
-    final refreshToken = prefs.getString('refresh');
-    if (refreshToken == null) return false;
+    final refresh = prefs.getString('refresh') ?? '';
+    if (refresh.isEmpty) return false;
 
     try {
-      final response = await http.post(
-        Uri.parse('${Constants.uri}/refreshToken'),
-        headers: {
-          'Content-Type': "application/json; charset=UTF-8",
-          'Authorization': "Bearer $refreshToken",
-        },
+      final res = await http.post(
+        Uri.parse('${Constants.uri}auth/refresh'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refreshToken': refresh}),
       );
 
-      if (response.statusCode == 200) {
-        final body = jsonDecode(response.body);
-        final newAccessToken = body['access_token'];
-        await prefs.setString('token', newAccessToken);
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body);
+        await prefs.setString('token', body['token'] ?? '');
+        await prefs.setString('refresh', body['refreshToken'] ?? '');
         return true;
       }
       return false;
@@ -76,37 +74,37 @@ class UserProvider extends ChangeNotifier {
 
   Future<void> fetchUserData() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-
-    if (token == null) {
-      await prefs.setString('token', '');
-      return;
-    }
+    var token = prefs.getString('token') ?? '';
+    if (token.isEmpty) return;
 
     try {
-      final tokenRes = await http.get(
-        Uri.parse('${Constants.uri}/tokenIsValid'),
-        headers: {
-          'Content-Type': "application/json; charset=UTF-8",
-          'Authorization': "Bearer $token",
-        },
+      var res = await http.get(
+        Uri.parse('${Constants.uri}auth/me'),
+        headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
       );
 
-      final body = jsonDecode(tokenRes.body);
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body);
+        setUser(body['user']); // expect { user: {...} }
+        return;
+      }
 
-      if (tokenRes.statusCode == 200 && body['valid'] == true) {
-        await prefs.setString('token', token);
-        setUser(body);
-      } else if ([401, 422, 500].contains(tokenRes.statusCode) || body['valid'] == false) {
-        final refreshed = await refreshToken();
-        if (refreshed) {
-          await fetchUserData();
-        } else {
+      if (res.statusCode == 403) {
+        final ok = await refreshToken();
+        if (!ok) {
           await prefs.remove('token');
-          print("Token invalid and refresh failed. User must log in again.");
+          await prefs.remove('refresh');
+          return;
         }
-      } else {
-        print("Unexpected error: ${body['message']}");
+        token = prefs.getString('token') ?? '';
+        res = await http.get(
+          Uri.parse('${Constants.uri}auth/me'),
+          headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+        );
+        if (res.statusCode == 200) {
+          final body = jsonDecode(res.body);
+          setUser(body['user']);
+        }
       }
     } catch (e) {
       print("Fetch user data error: $e");

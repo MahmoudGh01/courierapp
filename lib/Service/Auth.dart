@@ -93,9 +93,12 @@ class AuthService extends GetxController {
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         userProvider.setUser(data['user']);
+
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', data['token']);
+        await prefs.setString('token', data['token'] ?? '');
+        await prefs.setString('refresh', data['refreshToken'] ?? ''); // NEW
         await prefs.setBool('isLoggedIn', true);
+
         isAuthenticated.value = true;
         onLoginSuccess();
       } else {
