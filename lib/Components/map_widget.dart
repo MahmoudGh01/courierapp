@@ -63,7 +63,7 @@ class _MapWidgetBodyState extends State<MapWidgetBody> {
             Printer.debugPrint('polyyyy${state.polylines}');
             return GoogleMap(
               // polylines: state.polylines,
-              mapType: MapType.normal,
+              mapType: MapType.hybrid,
               initialCameraPosition: kGooglePlex,
               markers: _markers,
               onMapCreated: (GoogleMapController controller) async {

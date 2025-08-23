@@ -93,7 +93,7 @@ class AuthService extends GetxController {
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         userProvider.setUser(data['user']);
-
+        print(data['user']);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['token'] ?? '');
         await prefs.setString('refresh', data['refreshToken'] ?? ''); // NEW
@@ -126,8 +126,7 @@ class AuthService extends GetxController {
 
     isAuthenticated.value = false;
 
-    Navigator.popAndPushNamed(
-        context, SignInRoutes.signInRoot);
+
   }
 
   Future<void> otpverif({

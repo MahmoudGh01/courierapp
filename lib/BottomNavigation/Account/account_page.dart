@@ -5,6 +5,12 @@ import 'package:courier_app/app_settings/ui/language_sheet.dart';
 import 'package:courier_app/locale/locales.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:provider/provider.dart';
+
+import '../../Authentication/signin_navigator.dart';
+import '../../Models/user.dart';
+import '../../Service/Auth.dart';
+import '../../ViewModels/userprovider.dart';
 
 class AccountPage extends StatelessWidget {
   const AccountPage({super.key});
@@ -25,6 +31,8 @@ class AccountBody extends StatefulWidget {
 class _AccountBodyState extends State<AccountBody> {
   @override
   Widget build(BuildContext context) {
+    AuthService auth = AuthService();
+    var user = Provider.of<UserProvider>(context, listen: false).user;
     var locale = AppLocalizations.of(context);
     var mediaQuery = MediaQuery.of(context);
     var theme = Theme.of(context);
@@ -68,7 +76,7 @@ class _AccountBodyState extends State<AccountBody> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Samantha Smith',
+                              user.name,
                               style: theme.textTheme.headlineSmall?.copyWith(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w600,
@@ -152,40 +160,56 @@ class _AccountBodyState extends State<AccountBody> {
                         locale.signoutAccount,
                         onTap: () {
                           showDialog(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: Text(
-                                    locale.loggingout,
-                                    style: theme.textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text(
+                                  locale.loggingout,
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                  content: Text(locale.sureText),
-                                  actions: <Widget>[
-                                    MaterialButton(
-                                      textColor: theme.primaryColor,
-                                      shape: RoundedRectangleBorder(
-                                          side: BorderSide(
-                                              color: kWhiteColor)),
-                                      onPressed: () => Navigator.pop(context),
-                                      child: Text(locale.no),
+                                ),
+                                content: Text(locale.sureText),
+                                actions: <Widget>[
+                                  MaterialButton(
+                                    textColor: theme.primaryColor,
+                                    shape: RoundedRectangleBorder(
+                                      side: BorderSide(color: kWhiteColor),
                                     ),
-                                    MaterialButton(
-                                        shape: RoundedRectangleBorder(
-                                            side: BorderSide(
-                                                color: kWhiteColor)),
-                                        textColor: theme.primaryColor,
-                                        onPressed: () {
-                                          Phoenix.rebirth(context);
-                                        },
-                                        child: Text(locale.yes))
-                                  ],
-                                );
-                              });
+                                    onPressed: () => Navigator.pop(context),
+                                    child: Text(locale.no),
+                                  ),
+                                  MaterialButton(
+                                    shape: RoundedRectangleBorder(
+                                      side: BorderSide(color: kWhiteColor),
+                                    ),
+                                    textColor: theme.primaryColor,
+                                    // inside the "Yes" button of the logout dialog
+                                    onPressed: () async {
+                                      // 1) clear tokens
+                                      await auth.signOut(context);
+
+                                      // 2) optionally reset provider
+                                      Provider.of<UserProvider>(context, listen: false)
+                                          .setUserFromModel(User.empty());
+
+                                      // 3) go to SignInNavigator (no named route needed)
+                                      Navigator.of(context).pushAndRemoveUntil(
+                                        MaterialPageRoute(builder: (_) => const SignInNavigator()),
+                                            (route) => false,
+                                      );
+                                    },
+
+                                    child: Text(locale.yes),
+                                  )
+                                ],
+                              );
+                            },
+                          );
                         },
                       ),
+
                       const SizedBox(
                         height: 140,
                       ),
