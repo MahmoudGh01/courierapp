@@ -13,7 +13,8 @@ import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:provider/provider.dart';
 
 import 'Authentication/auth_wrapper.dart';
-import 'ViewModels/userprovider.dart'; // Make sure this path is correct
+import 'ViewModels/quick_request_provider.dart';
+import 'ViewModels/userprovider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +31,8 @@ void main() async {
       child: MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => UserProvider()),
+          ChangeNotifierProvider(create: (_) => QuickRequestProvider()), // << add
+
         ],
         child: BlocProvider<LanguageCubit>(
           create: (context) => LanguageCubit()..getCurrentLanguage(),
