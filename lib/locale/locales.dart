@@ -42,6 +42,18 @@ class AppLocalizations {
   String get signIn {
     return _localizedValues[locale.languageCode]!['signIn'] ?? '';
   }
+  String get saved {
+    return _localizedValues[locale.languageCode]!['saved'] ?? '';
+  }
+  String get registerAsCompany {
+    return _localizedValues[locale.languageCode]!['registerAsCompany'] ?? '';
+  }
+  String get companyName {
+    return _localizedValues[locale.languageCode]!['companyName'] ?? '';
+  }
+  String get companyRegistrationNumber {
+    return _localizedValues[locale.languageCode]!['companyRegistrationNumber'] ?? '';
+  }
   String get signUp {
     return _localizedValues[locale.languageCode]!['signUp'] ?? '';
   }

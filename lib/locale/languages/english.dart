@@ -110,6 +110,7 @@ Map<String, String> english() {
     "pickupHint": "Enter Pickup Location",
     "courierType": "Courier Type",
     "envelope": "Envelope",
+    "saved": "Your information has been saved",
     "arrangeDeliv": "Quick Transport Request",
     "arrangeDelivText": "Weight around 3-5 kg and can be easily carry on Scooter",
     "getFood": "Transport Request",

@@ -85,7 +85,7 @@ class UserProvider extends ChangeNotifier {
 
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
-        setUser(body['user']); // expect { user: {...} }
+        setUser(body);
         return;
       }
 
@@ -123,13 +123,17 @@ class UserProvider extends ChangeNotifier {
     String? companyRegistrationNumber,
   }) async {
     try {
-      final uri = Uri.parse('${Constants.uri}/edit-user/$userId');
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token') ?? '';
+
+      final uri = Uri.parse('${Constants.uri}users/modify-users/$userId');
       final body = {
+
         'name': name,
         'email': email,
         'image': profilePicturePath ?? '',
+        'role': role ?? 'SHIPPER',
         'phoneNumber': phone ?? '',
-        'role': role ?? 'User',
         'isCompany': isCompany,
         'companyName': companyName,
         'companyRegistrationNumber': companyRegistrationNumber,
@@ -140,18 +144,21 @@ class UserProvider extends ChangeNotifier {
         body: jsonEncode(body),
         headers: {
           'Content-Type': "application/json; charset=UTF-8",
+          'Authorization': 'Bearer $token',   // ✅ add token here
         },
       );
 
       if (res.statusCode == 200) {
+        print('User updated successfully: ${res.body}');
         await fetchUserData();
       } else {
-        print('Failed to update user: ${res.statusCode}');
+        print('Failed to update user: ${res.statusCode} → ${res.body}');
       }
     } catch (e) {
       print('Edit user error: $e');
     }
   }
+
 
 
 }

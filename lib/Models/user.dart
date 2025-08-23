@@ -59,7 +59,24 @@ class User {
       refresh: json['refresh'] ?? '',
     );
   }
-
+  factory User.empty() => User(
+    idUser: 0,
+    name: '',
+    email: '',
+    password: '',
+    isActive: true,
+    role: 'User',
+    token: '',
+    refresh: '',
+    phoneNumber: '',
+    image: '',
+    emailVerified: null,
+    googleId: '',
+    facebookId: '',
+    isCompany: false,
+    companyName: '',
+    companyRegistrationNumber: '',
+  );
   Map<String, dynamic> toMap() {
     return {
       'idUser': idUser,

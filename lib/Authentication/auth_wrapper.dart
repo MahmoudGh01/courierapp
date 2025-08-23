@@ -1,11 +1,13 @@
 // lib/Authentication/auth_wrapper.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 import '../Authentication/signin_navigator.dart';
 import '../Routes/routes.dart';
+import '../ViewModels/userprovider.dart';
 import '../utils/constants.dart';
 
 class AuthWrapper extends StatefulWidget {
@@ -31,42 +33,84 @@ class _AuthWrapperState extends State<AuthWrapper> {
     final refresh = prefs.getString('refresh') ?? '';
 
     if (token.isEmpty && refresh.isEmpty) {
-      setState(() { _loading = false; _loggedIn = false; });
+      setState(() {
+        _loading = false;
+        _loggedIn = false;
+      });
       return;
     }
 
-    final ok = await _tryPingWithAutoRefresh();
+    final ok = await _hydrateUserWithAutoRefresh();
     setState(() {
       _loading = false;
       _loggedIn = ok;
     });
   }
 
-  Future<bool> _tryPingWithAutoRefresh() async {
+  Future<bool> _hydrateUserWithAutoRefresh() async {
     final prefs = await SharedPreferences.getInstance();
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
     var token = prefs.getString('token') ?? '';
 
-    // Try a protected endpoint (e.g. /auth/me)
+    // 1) Try with current access token
     var res = await http.get(
       Uri.parse('${Constants.uri}auth/me'),
-      headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
     );
 
-    if (res.statusCode == 200) return true;
+    if (res.statusCode == 200) {
+      final body = _safeJson(res.body);
+      _setUserFromMeResponse(userProvider, body);
+      return true;
+    }
 
-    if (res.statusCode == 403) {
+    // 2) If unauthorized/expired → refresh then retry once
+    if (res.statusCode == 401 || res.statusCode == 403) {
       final refreshed = await _refreshTokens();
-      if (!refreshed) return false;
+      if (!refreshed) {
+        await _clearTokens();
+        return false;
+      }
 
       token = prefs.getString('token') ?? '';
       res = await http.get(
         Uri.parse('${Constants.uri}auth/me'),
-        headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
       );
-      return res.statusCode == 200;
+
+      if (res.statusCode == 200) {
+        final body = _safeJson(res.body);
+        _setUserFromMeResponse(userProvider, body);
+        return true;
+      }
     }
 
+    // 3) Any other failure → treat as not logged in
     return false;
+  }
+
+  void _setUserFromMeResponse(UserProvider userProvider, Map<String, dynamic>? body) {
+    if (body == null) return;
+    // Your provider sometimes expects a raw user, sometimes body['user'].
+    // Support both shapes safely:
+    if (body['user'] is Map<String, dynamic>) {
+      userProvider.setUser(body['user'] as Map<String, dynamic>);
+    } else {
+      userProvider.setUser(body);
+    }
+  }
+
+  Future<void> _clearTokens() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+    await prefs.remove('refresh');
+    await prefs.setBool('isLoggedIn', false);
   }
 
   Future<bool> _refreshTokens() async {
@@ -81,13 +125,22 @@ class _AuthWrapperState extends State<AuthWrapper> {
     );
 
     if (res.statusCode == 200) {
-      final body = jsonDecode(res.body);
-      await prefs.setString('token', body['token'] ?? '');
-      await prefs.setString('refresh', body['refreshToken'] ?? '');
+      final body = _safeJson(res.body);
+      await prefs.setString('token', body?['token'] ?? '');
+      await prefs.setString('refresh', body?['refreshToken'] ?? '');
       await prefs.setBool('isLoggedIn', true);
       return true;
     }
     return false;
+  }
+
+  Map<String, dynamic>? _safeJson(String data) {
+    try {
+      final decoded = jsonDecode(data);
+      return decoded is Map<String, dynamic> ? decoded : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   @override
@@ -96,8 +149,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // ✅ When logged in, push to the named home route (a String),
-    // not a Widget in a builder.
     if (_loggedIn) {
       return const _GotoHome(); // pushes PageRoutes.bottomNavigation
     }
@@ -106,7 +157,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   }
 }
 
-// A tiny helper widget that navigates once and shows a loader meanwhile.
+// Navigates once to the home named route after auth succeeds
 class _GotoHome extends StatelessWidget {
   const _GotoHome({super.key});
 
