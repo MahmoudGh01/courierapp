@@ -2,6 +2,8 @@ import 'package:courier_app/Theme/colors.dart';
 import 'package:flutter/material.dart';
 
 class AddressField extends StatelessWidget {
+  final TextEditingController? controller;
+
   final String? initialValue;
   final Widget? icon;
   final BorderSide? border;
@@ -21,6 +23,7 @@ class AddressField extends StatelessWidget {
     this.hint,
     this.onTap,
     this.readOnly,
+    this.controller,
   });
 
   @override

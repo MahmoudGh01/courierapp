@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
-enum ServiceType { RELOCATION, FREIGHT_TRANSPORTATION }
-enum TransportRequestStatus { DRAFT, PUBLISHED, IN_NEGOTIATION, OFFER_ACCEPTED, CANCELLED }
+enum ServiceType { RELOCATION }
+enum TransportRequestStatus { PUBLISHED }
 
 class QuickRequestProvider extends ChangeNotifier {
-  // Step 1: Origin
+  // Defaults required by backend
+  ServiceType serviceType = ServiceType.RELOCATION;
+  TransportRequestStatus status = TransportRequestStatus.PUBLISHED;
+
+  // Origin (required)
   String originAddress = '';
   String originState = '';
   String originCity = '';
@@ -12,7 +16,7 @@ class QuickRequestProvider extends ChangeNotifier {
   double? originLatitude;
   double? originLongitude;
 
-  // Step 2: Destination
+  // Destination (required)
   String destinationAddress = '';
   String destinationState = '';
   String destinationCity = '';
@@ -20,21 +24,12 @@ class QuickRequestProvider extends ChangeNotifier {
   double? destinationLatitude;
   double? destinationLongitude;
 
-  // Step 3: Additional info
-  DateTime? pickUpDate;
-  DateTime? deliveryDate;
-  String description = '';
-  ServiceType serviceType = ServiceType.RELOCATION;
-  TransportRequestStatus status = TransportRequestStatus.PUBLISHED;
+  // Meta (required/optional)
+  DateTime? pickUpDate;        // required
+  DateTime? deliveryDate;      // optional
+  String description = '';     // required
 
-  // Optional UI/form extras (not in backend)
-  bool isFragile = false;
-  int selectedCourierTypeIndex = 0;
-  double weight = 5.0;
-  double height = 0;
-  double width = 0;
-  double length = 0;
-
+  // ---- Update helpers ----
   void updateOrigin({
     String? address,
     String? state,
@@ -73,27 +68,34 @@ class QuickRequestProvider extends ChangeNotifier {
     DateTime? pickup,
     DateTime? delivery,
     String? desc,
-    ServiceType? service,
-    TransportRequestStatus? st,
-    bool? fragile,
-    int? courierTypeIndex,
-    double? w,
-    double? h,
-    double? d,
-    double? l,
   }) {
     if (pickup != null) pickUpDate = pickup;
     if (delivery != null) deliveryDate = delivery;
     if (desc != null) description = desc;
-    if (service != null) serviceType = service;
-    if (st != null) status = st;
-    if (fragile != null) isFragile = fragile;
-    if (courierTypeIndex != null) selectedCourierTypeIndex = courierTypeIndex;
-    if (w != null) weight = w;
-    if (h != null) height = h;
-    if (d != null) width = d;
-    if (l != null) length = l;
     notifyListeners();
+  }
+
+  // ---- Validation ----
+  bool isStep1Valid() {
+    return originAddress.isNotEmpty &&
+        originState.isNotEmpty &&
+        originCity.isNotEmpty &&
+        originPostalCode.isNotEmpty &&
+        originLatitude != null &&
+        originLongitude != null;
+  }
+
+  bool isStep2Valid() {
+    return destinationAddress.isNotEmpty &&
+        destinationState.isNotEmpty &&
+        destinationCity.isNotEmpty &&
+        destinationPostalCode.isNotEmpty &&
+        destinationLatitude != null &&
+        destinationLongitude != null;
+  }
+
+  bool isStep3Valid() {
+    return pickUpDate != null && description.isNotEmpty;
   }
 
   Map<String, dynamic> toJson({required int userId}) {
@@ -115,33 +117,14 @@ class QuickRequestProvider extends ChangeNotifier {
       "pickUpDate": pickUpDate?.toIso8601String(),
       "deliveryDate": deliveryDate?.toIso8601String(),
       "description": description,
-      "userId": userId, // if your backend expects this in DTO (otherwise remove)
+      "userId": userId, // if your backend binds user by id from DTO
     };
   }
 
-  bool isStep1Valid() {
-    return originAddress.isNotEmpty &&
-        originState.isNotEmpty &&
-        originCity.isNotEmpty &&
-        originPostalCode.isNotEmpty &&
-        originLatitude != null &&
-        originLongitude != null;
-  }
-
-  bool isStep2Valid() {
-    return destinationAddress.isNotEmpty &&
-        destinationState.isNotEmpty &&
-        destinationCity.isNotEmpty &&
-        destinationPostalCode.isNotEmpty &&
-        destinationLatitude != null &&
-        destinationLongitude != null;
-  }
-
-  bool isStep3Valid() {
-    return description.isNotEmpty && pickUpDate != null;
-  }
-
   void reset() {
+    serviceType = ServiceType.RELOCATION;
+    status = TransportRequestStatus.PUBLISHED;
+
     originAddress = '';
     originState = '';
     originCity = '';
@@ -159,15 +142,6 @@ class QuickRequestProvider extends ChangeNotifier {
     pickUpDate = null;
     deliveryDate = null;
     description = '';
-    serviceType = ServiceType.RELOCATION;
-    status = TransportRequestStatus.PUBLISHED;
-
-    isFragile = false;
-    selectedCourierTypeIndex = 0;
-    weight = 5.0;
-    height = 0;
-    width = 0;
-    length = 0;
     notifyListeners();
   }
 }
