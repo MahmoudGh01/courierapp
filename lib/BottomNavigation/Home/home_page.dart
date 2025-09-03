@@ -11,6 +11,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+
 class Card {
   Card(this.icon, this.title, this.subtitle, this.onPress);
 
@@ -29,6 +30,9 @@ class Ad {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // If you have unread notifications count, you can set it here or from provider.
+  int _unreadNotifications = 2;
+
   @override
   Widget build(BuildContext context) {
     var locale = AppLocalizations.of(context);
@@ -53,80 +57,121 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ];
     final List<Ad> ads = [
-      Ad(
-        "images/promo1.png",
-        "",
-        "Yellas Fast Food",
-      ),
-      Ad(
-        "images/promo2.png",
-        "",
-        "City Grocery Store",
-      ),
+      Ad("images/promo1.png", "", "Yellas Fast Food"),
+      Ad("images/promo2.png", "", "City Grocery Store"),
     ];
+
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: theme.colorScheme.surface,
+
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          elevation: 0,
+          backgroundColor: theme.colorScheme.surface,
+          titleSpacing: 16,
+          title: Row(
+            crossAxisAlignment: CrossAxisAlignment.center, // center align
+            children: [
+              Image.asset(
+                'images/logo.png',
+                height: 80,  // smaller, aligned with text height
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'SheapIT',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: theme.primaryColor,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 12.0),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    tooltip: 'Notifications',
+                    onPressed: () {},
+                    icon: Icon(
+                      Icons.notifications_outlined,
+                      color: theme.primaryColor,
+                      size: 26,
+                    ),
+                  ),
+                  if (_unreadNotifications > 0)
+                    Positioned(
+                      right: 10,
+                      top: 10,
+                      child: Container(
+                        width: 9,
+                        height: 9,
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+
       body: ListView(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 64.0),
         children: [
-          Stack(
-            children: [
-              FadedScaleAnimation(
-                child: Image.asset(
-                  "images/banner.png",
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 230),
-                child: ListView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: cards.length,
-                    itemBuilder: (context, index) {
-                      return buildCard(cards[index]);
-                    }),
-              ),
-            ],
+          // You had a Stack with just a ListView.builder inside, we can keep it simple:
+          Padding(
+            padding: const EdgeInsets.only(top: 30),
+            child: ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: cards.length,
+              itemBuilder: (context, index) {
+                return buildCard(cards[index]);
+              },
+            ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               '\n${locale.promo}\n',
-              style: Theme.of(context).textTheme.titleMedium,
+              style: theme.textTheme.titleMedium,
             ),
           ),
           SizedBox(
             height: 120,
             child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                itemCount: ads.length,
-                scrollDirection: Axis.horizontal,
-                itemBuilder: (context, index) {
-                  return buildAdsContainer(ads[index]);
-                }),
-          )
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              itemCount: ads.length,
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, index) => buildAdsContainer(ads[index]),
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget buildCard(Card card) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, card.onPress),
       child: Container(
         margin: const EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
         decoration: BoxDecoration(
-          // boxShadow: [boxShadow],
           borderRadius: BorderRadius.circular(10.0),
           color: kWhiteColor,
         ),
         child: Padding(
-          padding: const EdgeInsetsDirectional.only(
-            // top: 20.0,
-            // bottom: 20.0,
-            end: 20.0,
-          ),
+          padding: const EdgeInsetsDirectional.only(end: 20.0),
           child: Row(
             children: [
               FadedScaleAnimation(
@@ -145,18 +190,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       card.title!,
-                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                        color: Theme.of(context).primaryColor,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.primaryColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       '${card.subtitle}',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleSmall!
-                          .copyWith(color: Theme.of(context).dividerColor),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: theme.dividerColor,
+                      ),
                     ),
                   ],
                 ),
@@ -173,49 +217,12 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(left: 8, bottom: 6.0),
       width: 210.0,
       decoration: BoxDecoration(
-        // boxShadow: [boxShadow],
         image: DecorationImage(
-            // colorFilter: ColorFilter.mode(
-            //     Colors.black.withOpacity(0.45), BlendMode.darken),
-            image: AssetImage(ad.img),
-            fit: BoxFit.fill),
+          image: AssetImage(ad.img),
+          fit: BoxFit.fill,
+        ),
         borderRadius: BorderRadius.circular(10.0),
       ),
-      // child: Column(
-      //   crossAxisAlignment: CrossAxisAlignment.start,
-      //   children: <Widget>[
-      //     Padding(
-      //       padding: const EdgeInsets.all(12.0),
-      //       child: Text(
-      //         ad.text!,
-      //         style: Theme.of(context)
-      //             .textTheme
-      //             .titleMedium!
-      //             .copyWith(color: Theme.of(context).backgroundColor),
-      //       ),
-      //     ),
-      //     const Spacer(),
-      //     Padding(
-      //       padding: const EdgeInsets.all(12.0),
-      //       child: Row(
-      //         children: <Widget>[
-      //           Icon(
-      //             Icons.location_on,
-      //             size: 18.0,
-      //             color: Theme.of(context).primaryColor,
-      //           ),
-      //           Padding(
-      //             padding: const EdgeInsets.symmetric(horizontal: 8),
-      //             child: Text(
-      //               ad.location,
-      //               style: Theme.of(context).textTheme.titleSmall,
-      //             ),
-      //           )
-      //         ],
-      //       ),
-      //     )
-      //   ],
-      // ),
     );
   }
 }

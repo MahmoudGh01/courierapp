@@ -33,6 +33,7 @@ class _AccountBodyState extends State<AccountBody> {
   Widget build(BuildContext context) {
     AuthService auth = AuthService();
     var user = Provider.of<UserProvider>(context, listen: false).user;
+
     var locale = AppLocalizations.of(context);
     var mediaQuery = MediaQuery.of(context);
     var theme = Theme.of(context);
