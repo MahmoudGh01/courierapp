@@ -14,6 +14,7 @@ import 'package:provider/provider.dart';
 
 import 'Authentication/auth_wrapper.dart';
 import 'ViewModels/quick_request_provider.dart';
+import 'ViewModels/transport_request_provider.dart';
 import 'ViewModels/userprovider.dart';
 
 void main() async {
@@ -31,7 +32,8 @@ void main() async {
       child: MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => UserProvider()),
-          ChangeNotifierProvider(create: (_) => QuickRequestProvider()), // << add
+          ChangeNotifierProvider(create: (_) => QuickRequestProvider()),
+          ChangeNotifierProvider(create: (_) => TransportRequestProvider()),
 
         ],
         child: BlocProvider<LanguageCubit>(

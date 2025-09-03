@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
         "images/home2.png",
         locale.getFood,
         locale.getFoodText,
-        PageRoutes.arrangeDeliveryPage,
+        PageRoutes.transportRequestWizard,
       ),
       Card(
         "images/home3.png",
