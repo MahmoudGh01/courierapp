@@ -3,6 +3,10 @@ import 'package:courier_app/Routes/routes.dart';
 import 'package:courier_app/Theme/colors.dart';
 import 'package:courier_app/locale/locales.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../Components/plan_usage_banner.dart';
+import '../../ViewModels/userprovider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -62,11 +66,13 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     final theme = Theme.of(context);
+    var user = Provider.of<UserProvider>(context, listen: false).user;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
 
         appBar: AppBar(
+          surfaceTintColor: Colors.white,
           automaticallyImplyLeading: false,
           elevation: 0,
           backgroundColor: theme.colorScheme.surface,
@@ -127,7 +133,15 @@ class _HomeScreenState extends State<HomeScreen> {
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 64.0),
         children: [
-          // You had a Stack with just a ListView.builder inside, we can keep it simple:
+          PlanUsageBanner(
+            planName: user.plan?.name ?? '-',             // TODO: from provider
+            quickUsed: user.usage!.quickTransportRequestsUsed ?? 0 ,                    // TODO: from provider
+            quickLimit: user.plan!.limits?.quickTransportRequestsPerMonth ?? 0,                  // TODO: from provider
+            transportUsed: user.usage?.transportRequestsUsed ?? 0,                // TODO: from provider
+            transportLimit: user.plan!.limits?.transportRequestsPerMonth ?? 0,               // TODO: from provider
+            onUpgrade: () {},                // TODO: open upgrade screen
+            onDetails: () {},                // TODO: open usage details
+          ),
           Padding(
             padding: const EdgeInsets.only(top: 30),
             child: ListView.builder(

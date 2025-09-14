@@ -1,6 +1,8 @@
 import 'package:animation_wrappers/animation_wrappers.dart';
 import 'package:courier_app/BottomNavigation/Account/account_page.dart';
+import 'package:courier_app/BottomNavigation/Home/dashboard.dart';
 import 'package:courier_app/BottomNavigation/MyDeliveries/my_deliveries.dart';
+import 'package:courier_app/BottomNavigation/Support/chatbot.dart';
 import 'package:courier_app/Theme/colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +21,9 @@ class _BottomNavigationState extends State<BottomNavigation> {
   int _currentIndex = 1;
   final List<Widget> _children = <Widget>[
     const MyDeliveriesPage(),
+    const DashboardScreen(),
     const HomeScreen(),
+    const ChatbotScreen(),
     const AccountPage(),
   ];
 
@@ -42,9 +46,24 @@ class _BottomNavigationState extends State<BottomNavigation> {
       ),
       BottomNavigationBarItem(
         icon: FadedScaleAnimation(
+          child: const Icon(Icons.dashboard_outlined, color: Colors.grey),
+        ),
+        activeIcon:
+            Icon(Icons.dashboard, color: Theme.of(context).primaryColor),
+        label: '',
+      ),
+      BottomNavigationBarItem(
+        icon: FadedScaleAnimation(
           child: SvgPicture.asset('images/bottom_menu/ic_home.svg'),
         ),
         activeIcon: SvgPicture.asset('images/bottom_menu/ic_home_act.svg'),
+        label: '',
+      ),   BottomNavigationBarItem(
+        icon: FadedScaleAnimation(
+          child: const Icon(Icons.support_agent_outlined, color: Colors.grey),
+        ),
+        activeIcon:
+        Icon(Icons.support_agent, color: Theme.of(context).primaryColor),
         label: '',
       ),
       BottomNavigationBarItem(
