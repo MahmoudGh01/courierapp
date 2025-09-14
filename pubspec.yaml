@@ -22,7 +22,6 @@ dependencies:
   flutter_bloc: ^8.0.1
   animation_wrappers: ^3.0.0
   google_maps_flutter: ^2.5.0
-  google_place:
   geolocator:
   geocoding: ^2.1.1
   flutter_polyline_points:
@@ -33,7 +32,8 @@ dependencies:
   get:
   http:
   provider: ^6.1.3
-
+  file_picker: ^10.3.2
+  google_places_flutter: ^2.1.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -104,8 +104,8 @@ class _ArrangeDeliveryBodyState extends State<ArrangeDeliveryBody> {
                             DropStep(onContinue: () => goTo(2)),
                             DetailsStep(onContinue: () => goTo(3)),
                             ConfirmStep(onSuccess: () {
-                              // You can pop or reset after submit
-                              goTo(0);
+                              // Pop and go to home
+                              Navigator.of(context).popUntil((route) => route.isFirst);
                             }),
                           ],
                         ),

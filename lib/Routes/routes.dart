@@ -16,8 +16,13 @@ import 'package:courier_app/Pages/track_delivery.dart';
 import 'package:courier_app/Payment/payment.dart';
 import 'package:courier_app/Payment/pickup_assigned.dart';
 import 'package:courier_app/app_settings/ui/language_sheet.dart';
+import 'package:courier_app/transport_request/transport_request_wizard.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import 'package:courier_app/transport_request/transport_request_wizard.dart';
+
+import '../transport_request/transport_request_wizard.dart';
 
 class PageRoutes {
   static const String trackDelivery = 'track_delivery';
@@ -35,6 +40,7 @@ class PageRoutes {
   static const String deliveries = 'my_deliveries';
   static const String myProfilePage = 'my_profile_page';
   static const String arrangeDeliveryPage = 'arrange_delivery_page';
+  static const String transportRequestWizard = 'transport-request';
   static const String getFoodDeliveredPage = 'get_food_delivered_page';
   static const String getGroceryDeliveredPage = 'get_grocery_delivered_page';
   static const String languagePage = 'language_page';
@@ -45,7 +51,6 @@ class PageRoutes {
 
   Map<String, WidgetBuilder> routes() {
     return {
-      trackDelivery: (context) => const TrackDelivery(),
       savedAddressesPage: (context) => const SavedAddressesPage(),
       contactUsPage: (context) => const ContactUsPage(),
       tncPage: (context) => const TncPage(),
@@ -56,6 +61,7 @@ class PageRoutes {
       pickupAssigned: (context) => const PickupAssigned(),
       myProfilePage: (context) => const MyProfilePage(),
       arrangeDeliveryPage: (context) => const ArrangeDeliveryPage(),
+      transportRequestWizard: (context) => const TransportRequestWizard(),
       getFoodDeliveredPage: (context) => const GetFoodDeliveredPage(),
       getGroceryDeliveredPage: (context) => const GetGroceryDeliveredPage(),
       languagePage: (context) => const LanguageSheet(),

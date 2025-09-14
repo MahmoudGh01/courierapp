@@ -42,6 +42,7 @@ class ConfirmStep extends StatelessWidget {
             radius: BorderRadius.circular(35),
             onPressed: () async {
               final ok = await _submitQuickRequest(context, quick, user.idUser);
+              print(user.idUser);
               if (ok) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Request submitted successfully')),
@@ -78,7 +79,7 @@ class ConfirmStep extends StatelessWidget {
 
     final payload = quick.toJson(userId: userId);
     var res = await http.post(
-      Uri.parse('${Constants.uri}quick-requests'),
+      Uri.parse('${Constants.uri}QuickTransportRequest/add-QuickTransportRequest'),
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
       body: jsonEncode(payload),
     );
@@ -89,7 +90,7 @@ class ConfirmStep extends StatelessWidget {
 
       token = prefs.getString('token') ?? '';
       res = await http.post(
-        Uri.parse('${Constants.uri}quick-requests'),
+        Uri.parse('${Constants.uri}QuickTransportRequest/add-QuickTransportRequest'),
         headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
         body: jsonEncode(payload),
       );
