@@ -39,41 +39,46 @@ class OrderMapBloc extends Cubit<OrderMapState> {
     );
   }
 
-  // core: call Directions via flutter_polyline_points and decode the path
   Future<List<LatLng>> _getPolylineCoordinates(
       LatLng pickupLatLng,
       LatLng dropLatLng,
       ) async {
-    final List<LatLng> polylineCoordinates = [];             // accumulator for LatLngs
-    final polylinePoints = PolylinePoints();                 // client instance
+    final List<LatLng> polylineCoordinates = [];
 
     try {
-      // IMPORTANT: ^2.x API -> positional params: (apiKey, origin, destination, {travelMode,...})
-      final result = await polylinePoints.getRouteBetweenCoordinates(
-        apiKey,                                              // your Google Directions API key
-        PointLatLng(pickupLatLng.latitude, pickupLatLng.longitude), // origin
-        PointLatLng(dropLatLng.latitude, dropLatLng.longitude),     // destination
-        travelMode: TravelMode.driving,                      // optional: driving/walking/bicycling
+      // 1) init with your Google API key
+      final polylinePoints = PolylinePoints(
+        apiKey: apiKey,                        // <-- your key
+        defaultTimeout: const Duration(seconds: 30),
+        preferRoutesApi: true,                 // set to false if you only enabled "Directions API"
       );
 
-      // if the service returned points, map them to LatLng
+      // 2) build request
+      final req = PolylineRequest(
+        origin: PointLatLng(pickupLatLng.latitude, pickupLatLng.longitude),
+        destination: PointLatLng(dropLatLng.latitude, dropLatLng.longitude),
+        mode: TravelMode.driving,
+      );
+
+      // 3) call
+      final result = await polylinePoints.getRouteBetweenCoordinates(request: req);
+
+      // 4) map decoded points
       if (result.points.isNotEmpty) {
         for (final p in result.points) {
-          polylineCoordinates.add(LatLng(p.latitude, p.longitude));  // push each decoded point
+          polylineCoordinates.add(LatLng(p.latitude, p.longitude));
         }
       } else {
-        // log any backend error from plugin (quota, key restrictions, etc.)
-        Printer.debugPrint('Polyline empty. Message: ${result.errorMessage}');
+        // result.errorMessage may contain: "API key not valid for Routes API", quota, etc.
+        print('Polyline empty. status: ${result.status} | message: ${result.errorMessage}');
       }
     } catch (e) {
-      // catch unexpected exceptions (network off, bad key variable, etc.)
-      Printer.debugPrint('Polyline exception: $e');
+      print('Polyline exception: $e');
     }
 
-    Printer.debugPrint('Polyline coords count: ${polylineCoordinates.length}'); // debug length
-    return polylineCoordinates;                                   // return decoded list
+    print('Polyline coords count: ${polylineCoordinates.length}');
+    return polylineCoordinates;
   }
-
   // demo markers (icons come from map_utils.dart -> markerss)
   final List<Marker> markers = [
     Marker(

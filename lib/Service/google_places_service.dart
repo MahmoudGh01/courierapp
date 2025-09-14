@@ -1,83 +1,70 @@
 // lib/Service/google_places_service.dart
-import 'package:google_place/google_place.dart';
 import 'package:geocoding/geocoding.dart' as geo;
+import 'package:google_places_flutter/model/prediction.dart';
 
 import 'address_parts.dart';
 
 class GooglePlacesService {
-  final GooglePlace _gp;
+  final String apiKey;
+  GooglePlacesService(this.apiKey);
 
-  GooglePlacesService(String apiKey) : _gp = GooglePlace(apiKey);
+  /// Convert a Prediction (with lat/lng from google_places_flutter) to AddressParts.
+  /// If lat/lng available, we reverse geocode to get state/city/postal.
+  Future<AddressParts?> predictionToAddressParts(Prediction p) async {
+    final double? lat = p.lat != null ? double.tryParse(p.lat!) : null;
+    final double? lng = p.lng != null ? double.tryParse(p.lng!) : null;
 
-  /// Autocomplete wrapper (UI still consumes AutocompletePrediction for list)
-  Future<List<AutocompletePrediction>> autocomplete(String input) async {
-    final res = await _gp.autocomplete.get(input, language: 'en');
-    return res?.predictions ?? <AutocompletePrediction>[];
-  }
 
-  /// Fetch details by placeId and return unified AddressParts
-  Future<AddressParts?> fetchPartsFromPlaceId(String placeId) async {
-    final res = await _gp.details.get(placeId);
-    final d = res?.result;
-    if (d == null) return null;
+    String formatted = p.description ?? '';
+    String? state, city, postal;
 
-    final loc = d.geometry?.location;
-    final formatted = d.formattedAddress ?? d.name ?? '';
-    // Convert Google address components -> state/city/postal
-    final comp = _componentsToParts(d.addressComponents ?? []);
-    return AddressParts(
-      formattedAddress: formatted,
-      state: comp['state'],
-      city: comp['city'],
-      postalCode: comp['postal'],
-      lat: loc?.lat?.toDouble(),
-      lng: loc?.lng?.toDouble(),
-    );
-  }
-
-  /// Reverse geocoding -> AddressParts (using device lat/lng)
-  Future<AddressParts?> reverseGeocode(double lat, double lng) async {
-    final placemarks = await geo.placemarkFromCoordinates(lat, lng);
-    if (placemarks.isEmpty) return null;
-
-    final p = placemarks.first;
-    final formatted = [
-      p.street,
-      p.subLocality,
-      p.locality,
-      p.administrativeArea,
-      p.postalCode,
-      p.country
-    ].where((e) => e != null && e!.trim().isNotEmpty).join(', ');
+    if (lat != null && lng != null) {
+      final rev = await reverseGeocode(lat, lng);
+      state = rev?.state;
+      city = rev?.city;
+      postal = rev?.postalCode;
+      // if formatted is empty (rare), fallback to reverse formatted
+      if (formatted.isEmpty && rev?.formattedAddress != null) {
+        formatted = rev!.formattedAddress!;
+      }
+    }
 
     return AddressParts(
       formattedAddress: formatted,
-      state: p.administrativeArea,
-      city: p.locality ?? p.subAdministrativeArea,
-      postalCode: p.postalCode,
+      state: state,
+      city: city,
+      postalCode: postal,
       lat: lat,
       lng: lng,
     );
   }
 
-  /// Helper: parse Google's AddressComponent list
-  Map<String, String?> _componentsToParts(List<AddressComponent> comps) {
-    String? state, city, postal;
-    for (final c in comps) {
-      final types = c.types ?? [];
-      if (types.contains('administrative_area_level_1')) {
-        state = c.longName;
-      } else if (types.contains('locality') ||
-          types.contains('administrative_area_level_2')) {
-        city = c.longName;
-      } else if (types.contains('postal_code')) {
-        postal = c.longName;
-      }
+  /// Reverse geocoding using geocoding package -> AddressParts
+  Future<AddressParts?> reverseGeocode(double lat, double lng) async {
+    try {
+      final placemarks = await geo.placemarkFromCoordinates(lat, lng);
+      if (placemarks.isEmpty) return null;
+
+      final p = placemarks.first;
+      final formatted = [
+        p.street,
+        p.subLocality,
+        p.locality,
+        p.administrativeArea,
+        p.postalCode,
+        p.country
+      ].where((e) => e != null && e!.trim().isNotEmpty).join(', ');
+
+      return AddressParts(
+        formattedAddress: formatted,
+        state: p.administrativeArea,
+        city: p.locality ?? p.subAdministrativeArea,
+        postalCode: p.postalCode,
+        lat: lat,
+        lng: lng,
+      );
+    } catch (_) {
+      return null;
     }
-    return {
-      'state': state,
-      'city': city,
-      'postal': postal,
-    };
   }
 }

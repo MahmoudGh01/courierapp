@@ -1,10 +1,10 @@
 // lib/Components/place_search_field.dart
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:google_place/google_place.dart';
+import 'package:google_places_flutter/google_places_flutter.dart';
+import 'package:google_places_flutter/model/prediction.dart';
 
-import '../Service/google_places_service.dart';
 import '../Service/address_parts.dart';
+import '../Service/google_places_service.dart';
 
 class PlaceSearchField extends StatefulWidget {
   final GooglePlacesService service;
@@ -25,97 +25,81 @@ class PlaceSearchField extends StatefulWidget {
 }
 
 class _PlaceSearchFieldState extends State<PlaceSearchField> {
-  final _debounce = const Duration(milliseconds: 250);
-  Timer? _timer;
-  List<AutocompletePrediction> _predictions = [];
-
-  @override
-  void initState() {
-    super.initState();
-    widget.controller.addListener(_onChanged);
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_onChanged);
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  void _onChanged() {
-    _timer?.cancel();
-    _timer = Timer(_debounce, () async {
-      final txt = widget.controller.text.trim();
-      if (txt.isEmpty) {
-        if (mounted) setState(() => _predictions = []);
-        return;
-      }
-      final list = await widget.service.autocomplete(txt);
-      if (mounted) setState(() => _predictions = list);
-    });
-  }
-
-  Future<void> _usePrediction(AutocompletePrediction p) async {
-    if (p.placeId == null) return;
-    final parts = await widget.service.fetchPartsFromPlaceId(p.placeId!);
-    if (parts == null) return;
-
-    // Update text field
-    widget.controller.text = parts.formattedAddress;
-
-    // Clear predictions + hide keyboard
-    if (mounted) {
-      setState(() => _predictions = []);
-      FocusScope.of(context).unfocus();  // 👈 closes keyboard & suggestion list
-    }
-
-    // Notify parent (map, provider, etc.)
-    widget.onPlaceResolved(parts);
-  }
-
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        TextField(
-          controller: widget.controller,
-          style: theme.textTheme.bodyLarge?.copyWith(fontSize: 16),
-          decoration: InputDecoration(
-            hintText: widget.hintText ?? 'Search address',
-            hintStyle: theme.textTheme.titleMedium?.copyWith(fontSize: 18),
-            suffixIcon: _predictions.isNotEmpty
-                ? IconButton(
-              icon: const Icon(Icons.clear),
-              onPressed: () {
-                widget.controller.clear();
-                setState(() => _predictions = []);
-              },
-            )
-                : null,
+
+    return GooglePlaceAutoCompleteTextField(
+      textEditingController: widget.controller,
+      googleAPIKey: widget.service.apiKey,   // pass key here
+      inputDecoration: InputDecoration(
+        hintText: widget.hintText ?? 'Search your location',
+        hintStyle: theme.textTheme.titleMedium?.copyWith(fontSize: 18),
+        border: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      ),
+      debounceTime: 350,
+      // Limit countries if needed: e.g. ["tn","fr"]
+      // countries: const ["tn"],
+
+      // We need lat/lng from prediction
+      isLatLngRequired: true,
+
+      // When user taps an item in the list
+      itemClick: (Prediction prediction) async {
+        // Set text
+        widget.controller.text = prediction.description ?? "";
+        widget.controller.selection = TextSelection.fromPosition(
+          TextPosition(offset: widget.controller.text.length),
+        );
+
+        // Resolve to AddressParts (reverse geocode to get city/state/postal)
+        final parts = await widget.service.predictionToAddressParts(prediction);
+        if (parts != null) {
+          widget.onPlaceResolved(parts);
+        }
+
+        // Close the predictions list by unfocusing
+        FocusScope.of(context).unfocus();
+      },
+
+      // Called when details (lat,lng) are computed
+      getPlaceDetailWithLatLng: (Prediction prediction) async {
+        // Optional: also resolve here in case you want
+        final parts = await widget.service.predictionToAddressParts(prediction);
+        if (parts != null) {
+          widget.onPlaceResolved(parts);
+        }
+        // Close predictions list
+        FocusScope.of(context).unfocus();
+      },
+
+      // Custom item builder (optional)
+      itemBuilder: (context, index, Prediction prediction) {
+        return Container(
+          padding: const EdgeInsets.all(10),
+          child: Row(
+            children: [
+              const Icon(Icons.location_on),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  prediction.description ?? '',
+                  style: theme.textTheme.bodyMedium,
+                ),
+              )
+            ],
           ),
-        ),
-        if (_predictions.isNotEmpty)
-          Card(
-            margin: const EdgeInsets.only(top: 6.0),
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _predictions.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
-              itemBuilder: (_, i) {
-                final p = _predictions[i];
-                return ListTile(
-                  dense: true,
-                  title: Text(p.description ?? '', style: theme.textTheme.bodyMedium),
-                  onTap: () => _usePrediction(p),
-                );
-              },
-            ),
-          ),
-      ],
+        );
+      },
+
+      // Separator line
+      seperatedBuilder: const Divider(height: 1),
+      // Add a clear button
+      isCrossBtnShown: true,
+      // match your styles
+      containerHorizontalPadding: 0,
     );
   }
 }
