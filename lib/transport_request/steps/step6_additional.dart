@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../Service/upload_service.dart';
 import '../../Theme/colors.dart';
 import '../../ViewModels/transport_request_provider.dart';
 
@@ -63,22 +66,36 @@ class Step6Additional extends StatelessWidget {
                           child: ElevatedButton.icon(
                             icon: const Icon(Icons.upload_file),
                             label: const Text('Click to upload or drag & drop'),
-                            onPressed: () async {
-                              final res = await FilePicker.platform.pickFiles(
-                                allowMultiple: true,
-                                type: FileType.custom,
-                                allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-                              );
-                              if (res != null) {
-                                for (final f in res.files) {
-                                  if ((f.size <= 4 * 1024 * 1024) && f.path != null) {
-                                    // ≤ 4MB et chemin valide
-                                    // ignore: use_build_context_synchronously
-                                    context.read<TransportRequestProvider>().addDocumentPath(f.path!);
+                              onPressed: () async {
+                                final res = await FilePicker.platform.pickFiles(
+                                  allowMultiple: true,
+                                  type: FileType.custom,
+                                  allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+                                );
+
+                                if (res != null) {
+                                  for (final f in res.files) {
+                                    if (f.path != null) {
+                                      final file = File(f.path!);
+                                      if (file.lengthSync() <= 4 * 1024 * 1024) {
+                                        try {
+                                          final url = await UploadService.uploadFile(file);
+                                          if (url != null && context.mounted) {
+                                            context.read<TransportRequestProvider>().addDocumentPath(url); // now stores cloud URL
+                                          }
+                                        } catch (e) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text("Upload failed: $e")),
+                                            );
+                                          }
+                                        }
+                                      }
+                                    }
                                   }
                                 }
                               }
-                            },
+
                           ),
                         ),
                       ),
@@ -86,15 +103,15 @@ class Step6Additional extends StatelessWidget {
                       const SizedBox(height: 12),
 
                       // ---- Liste des documents sélectionnés ----
-                      if (p.dto.documentPaths.isNotEmpty) ...[
+                      if (p.dto.documentPaths!.isNotEmpty) ...[
                         Text('Attached Documents', style: theme.textTheme.titleMedium),
                         const SizedBox(height: 6),
                         ListView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: p.dto.documentPaths.length,
+                          itemCount: p.dto.documentPaths!.length,
                           itemBuilder: (_, i) {
-                            final path = p.dto.documentPaths[i];
+                            final path = p.dto.documentPaths![i];
                             return Card(
                               elevation: 0,
                               margin: const EdgeInsets.symmetric(vertical: 4),

@@ -51,7 +51,6 @@ class PageRoutes {
 
   Map<String, WidgetBuilder> routes() {
     return {
-      trackDelivery: (context) => const TrackDelivery(),
       savedAddressesPage: (context) => const SavedAddressesPage(),
       contactUsPage: (context) => const ContactUsPage(),
       tncPage: (context) => const TncPage(),

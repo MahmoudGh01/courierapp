@@ -10,7 +10,7 @@ import '../../Components/place_search_field.dart';
 import '../../Components/map_selector.dart';
 import '../../Components/map_selector_controller.dart';
 import '../../ViewModels/transport_request_provider.dart';
-import '../../models/enums.dart';
+import '../../Models/enums.dart';
 import '../../utils/constants.dart';
 
 class Step2ServiceDetails extends StatefulWidget {
@@ -482,7 +482,7 @@ class _Step2ServiceDetailsState extends State<Step2ServiceDetails> {
                           selected: _dismantleType == DismantlingType.ALL_ITEMS,
                           onSelected: (_) {
                             setState(() => _dismantleType = DismantlingType.ALL_ITEMS);
-                            context.read<TransportRequestProvider>().setDismantling(type: _dismantleType);
+                            context.read<TransportRequestProvider>().setDismantling(type: _dismantleType.toString());
                           },
                         ),
                         ChoiceChip(
@@ -490,7 +490,7 @@ class _Step2ServiceDetailsState extends State<Step2ServiceDetails> {
                           selected: _dismantleType == DismantlingType.SOME_ITEMS,
                           onSelected: (_) {
                             setState(() => _dismantleType = DismantlingType.SOME_ITEMS);
-                            context.read<TransportRequestProvider>().setDismantling(type: _dismantleType);
+                            context.read<TransportRequestProvider>().setDismantling(type: _dismantleType.toString());
                           },
                         ),
                       ],

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../Theme/colors.dart';
 import '../../ViewModels/transport_request_provider.dart';
-import '../../models/enums.dart';
+import '../../Models/enums.dart';
 
 class Step4Vehicle extends StatelessWidget {
   final VoidCallback onNext;
@@ -45,18 +45,18 @@ class Step4Vehicle extends StatelessWidget {
                         context: context,
                         items: [
                           _VehicleOption(
-                            selected: p.dto.vehicleType == VehicleType.SEMI_TRAILER,
+                            selected: p.dto.vehicleType == VehicleType.SEMI_TRAILER.name,
                             icon: Icons.local_shipping,
                             title: 'Semi-Trailer',
                             subtitle: 'Truck for transporting large cargo.',
-                            onTap: () => context.read<TransportRequestProvider>().setVehicle(vehicleType: VehicleType.SEMI_TRAILER),
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(vehicleType: VehicleType.SEMI_TRAILER.name),
                           ),
                           _VehicleOption(
-                            selected: p.dto.vehicleType == VehicleType.TRUCK,
+                            selected: p.dto.vehicleType == VehicleType.TRUCK.name,
                             icon: Icons.fire_truck_outlined,
                             title: 'Truck',
                             subtitle: 'Heavy vehicle for bigger loads.',
-                            onTap: () => context.read<TransportRequestProvider>().setVehicle(vehicleType: VehicleType.TRUCK),
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(vehicleType: VehicleType.TRUCK.name),
                           ),
                         ],
                       ),
@@ -65,18 +65,18 @@ class Step4Vehicle extends StatelessWidget {
                         context: context,
                         items: [
                           _VehicleOption(
-                            selected: p.dto.vehicleType == VehicleType.VAN,
+                            selected: p.dto.vehicleType == VehicleType.VAN.name,
                             icon: Icons.local_shipping_outlined,
                             title: 'Van',
                             subtitle: 'Mid volume / city friendly.',
-                            onTap: () => context.read<TransportRequestProvider>().setVehicle(vehicleType: VehicleType.VAN),
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(vehicleType: VehicleType.VAN.name),
                           ),
                           _VehicleOption(
-                            selected: p.dto.vehicleType == VehicleType.PICKUP,
+                            selected: p.dto.vehicleType == VehicleType.PICKUP.name,
                             icon: Icons.directions_car_filled_outlined,
                             title: 'Pickup',
                             subtitle: 'Light cargo, flexible access.',
-                            onTap: () => context.read<TransportRequestProvider>().setVehicle(vehicleType: VehicleType.PICKUP),
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(vehicleType: VehicleType.PICKUP.name),
                           ),
                         ],
                       ),
@@ -90,18 +90,18 @@ class Step4Vehicle extends StatelessWidget {
                         context: context,
                         items: [
                           _VehicleOption(
-                            selected: p.dto.loadingCapacity == LoadingCapacityType.LIGHT_DUTY,
+                            selected: p.dto.loadingCapacity == LoadingCapacityType.LIGHT_DUTY.name,
                             icon: Icons.inventory_2_outlined,
                             title: 'Light Duty',
                             subtitle: 'Small loads / parcels.',
-                            onTap: () => context.read<TransportRequestProvider>().setVehicle(loadingCapacity: LoadingCapacityType.LIGHT_DUTY),
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(loadingCapacity: LoadingCapacityType.LIGHT_DUTY.name),
                           ),
                           _VehicleOption(
-                            selected: p.dto.loadingCapacity == LoadingCapacityType.MEDIUM_DUTY,
+                            selected: p.dto.loadingCapacity == LoadingCapacityType.MEDIUM_DUTY.name,
                             icon: Icons.inventory_outlined,
                             title: 'Medium Duty',
                             subtitle: 'Medium loads, common choice.',
-                            onTap: () => context.read<TransportRequestProvider>().setVehicle(loadingCapacity: LoadingCapacityType.MEDIUM_DUTY),
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(loadingCapacity: LoadingCapacityType.MEDIUM_DUTY.name),
                           ),
                         ],
                       ),
@@ -110,11 +110,11 @@ class Step4Vehicle extends StatelessWidget {
                         context: context,
                         items: [
                           _VehicleOption(
-                            selected: p.dto.loadingCapacity == LoadingCapacityType.HEAVY_DUTY,
+                            selected: p.dto.loadingCapacity == LoadingCapacityType.HEAVY_DUTY.name,
                             icon: Icons.inventory,
                             title: 'Heavy Duty',
                             subtitle: 'Large or heavy loads.',
-                            onTap: () => context.read<TransportRequestProvider>().setVehicle(loadingCapacity: LoadingCapacityType.HEAVY_DUTY),
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(loadingCapacity: LoadingCapacityType.HEAVY_DUTY.name),
                           ),
                           const _VehicleOption.spacer(),
                         ],
@@ -129,18 +129,18 @@ class Step4Vehicle extends StatelessWidget {
                         context: context,
                         items: [
                           _VehicleOption(
-                            selected: p.dto.accessType == AccessType.LARGE_VEHICLE,
+                            selected: p.dto.accessType == AccessType.LARGE_VEHICLE_ACCESS.name,
                             icon: Icons.warehouse_outlined,
                             title: 'Access for Large Vehicles',
                             subtitle: 'Trucks can access the site.',
-                            onTap: () => context.read<TransportRequestProvider>().setVehicle(accessType: AccessType.LARGE_VEHICLE),
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(accessType: AccessType.LARGE_VEHICLE_ACCESS.name),
                           ),
                           _VehicleOption(
-                            selected: p.dto.accessType == AccessType.LIGHT_ONLY,
+                            selected: p.dto.accessType == AccessType.LIGHT_VEHICLE_ONLY.name,
                             icon: Icons.directions_car_outlined,
                             title: 'Light Vehicles Only',
                             subtitle: 'Vans / pickups only.',
-                            onTap: () => context.read<TransportRequestProvider>().setVehicle(accessType: AccessType.LIGHT_ONLY),
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(accessType: AccessType.LIGHT_VEHICLE_ONLY.name),
                           ),
                         ],
                       ),
@@ -149,11 +149,11 @@ class Step4Vehicle extends StatelessWidget {
                         context: context,
                         items: [
                           _VehicleOption(
-                            selected: p.dto.accessType == AccessType.HEIGHT_WIDTH_RESTRICTED,
+                            selected: p.dto.accessType == AccessType.HEIGHT_WIDTH_RESTRICTIONS.name,
                             icon: Icons.height,
                             title: 'Restrictions',
                             subtitle: 'Restricted clearance present.',
-                            onTap: () => context.read<TransportRequestProvider>().setVehicle(accessType: AccessType.HEIGHT_WIDTH_RESTRICTED),
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(accessType: AccessType.HEIGHT_WIDTH_RESTRICTIONS.name),
                           ),
                           const _VehicleOption.spacer(),
                         ],

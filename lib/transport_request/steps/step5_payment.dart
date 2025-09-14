@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../Theme/colors.dart';
 import '../../ViewModels/transport_request_provider.dart';
-import '../../models/enums.dart';
+import '../../Models/enums.dart';
 
 class Step5Payment extends StatelessWidget {
   final VoidCallback onNext;
@@ -55,21 +55,21 @@ class Step5Payment extends StatelessWidget {
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          chip<PaymentMethod>(
+                          chip<String>(
                             p.dto.paymentMethod,
-                            PaymentMethod.CASH_ON_DELIVERY,
+                            PaymentMethod.CASH_ON_DELIVERY.name,
                             'Cash on delivery.',
                                 (v) => context.read<TransportRequestProvider>().setPayment(paymentMethod: v),
                           ),
-                          chip<PaymentMethod>(
+                          chip<String>(
                             p.dto.paymentMethod,
-                            PaymentMethod.BANK_TRANSFER,
+                            PaymentMethod.BANK_TRANSFER.name,
                             'Bank transfer',
                                 (v) => context.read<TransportRequestProvider>().setPayment(paymentMethod: v),
                           ),
-                          chip<PaymentMethod>(
+                          chip<String>(
                             p.dto.paymentMethod,
-                            PaymentMethod.CARD,
+                            PaymentMethod.CREDIT_CARD_ON_DELIVERY.name,
                             'Card',
                                 (v) => context.read<TransportRequestProvider>().setPayment(paymentMethod: v),
                           ),
@@ -85,22 +85,22 @@ class Step5Payment extends StatelessWidget {
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          chip<PaymentCondition>(
+                          chip<String>(
                             p.dto.paymentCondition,
-                            PaymentCondition.PAYMENT_ON_RECEIPT,
+                            PaymentCondition.PAYMENT_ON_RECEIPT.name,
                             'Payment on receipt.',
                                 (v) => context.read<TransportRequestProvider>().setPayment(paymentCondition: v),
                           ),
-                          chip<PaymentCondition>(
+                          chip<String>(
                             p.dto.paymentCondition,
-                            PaymentCondition.ADVANCE,
+                            PaymentCondition.ADVANCE_PAYMENT.name,
                             'Advance',
                                 (v) => context.read<TransportRequestProvider>().setPayment(paymentCondition: v),
                           ),
-                          chip<PaymentCondition>(
+                          chip<String>(
                             p.dto.paymentCondition,
-                            PaymentCondition.NET30,
-                            'Net 30',
+                            PaymentCondition.INSTALLMENT_PAYMENT.name,
+                            'Installments',
                                 (v) => context.read<TransportRequestProvider>().setPayment(paymentCondition: v),
                           ),
                         ],

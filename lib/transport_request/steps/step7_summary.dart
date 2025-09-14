@@ -6,7 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Theme/colors.dart';
 import '../../ViewModels/transport_request_provider.dart';
+import '../../ViewModels/userprovider.dart';
 import '../../utils/constants.dart';
+import '../../Models/merchandise_model.dart';
+import '../../Models/merchandise_items.dart';
 
 class Step7Summary extends StatelessWidget {
   final VoidCallback onSubmitSuccess;
@@ -19,19 +22,20 @@ class Step7Summary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // -- read provider + theme
+    final user  = Provider.of<UserProvider>(context, listen: false).user.idUser;
+    print(user);
     final p     = context.watch<TransportRequestProvider>();
+    context.read<TransportRequestProvider>().setUser(user);
     final theme = Theme.of(context);
 
-    // -- submit function (POST payload with Bearer token)
     Future<void> _submit() async {
-      final payload = p.dto.toJson(); // build payload
+      final payload = p.dto.toJson();
       final prefs   = await SharedPreferences.getInstance();
       final token   = prefs.getString('token') ?? '';
 
       try {
         final res = await http.post(
-          Uri.parse('${Constants.uri}transport-requests'),
+          Uri.parse('${Constants.uri}TransportRequest/add-TransportRequest'),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token',
@@ -42,7 +46,6 @@ class Step7Summary extends StatelessWidget {
         if (res.statusCode == 200 || res.statusCode == 201) {
           onSubmitSuccess();
         } else {
-          // try to extract error body text if any
           final err = res.body.isNotEmpty ? res.body : 'HTTP ${res.statusCode}';
           // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(
@@ -57,7 +60,6 @@ class Step7Summary extends StatelessWidget {
       }
     }
 
-    // -- small chip UI for enum/value display
     Widget _pill(String text) => Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -74,11 +76,7 @@ class Step7Summary extends StatelessWidget {
       ),
     );
 
-    // -- section container
-    Widget _sectionCard({
-      required String title,
-      required Widget child,
-    }) {
+    Widget _sectionCard({required String title, required Widget child}) {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.all(12),
@@ -98,13 +96,7 @@ class Step7Summary extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // section title
-            Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+            Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             child,
           ],
@@ -112,7 +104,6 @@ class Step7Summary extends StatelessWidget {
       );
     }
 
-    // -- label/value line
     Widget _kv(String label, String value) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
@@ -121,8 +112,7 @@ class Step7Summary extends StatelessWidget {
           children: [
             SizedBox(
               width: 140,
-              child: Text(
-                label,
+              child: Text(label,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.hintColor,
                   fontWeight: FontWeight.w600,
@@ -130,18 +120,58 @@ class Step7Summary extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: Text(
-                value.isEmpty ? '—' : value,
-                style: theme.textTheme.bodyMedium,
-              ),
+              child: Text(value.isEmpty ? '—' : value,
+                  style: theme.textTheme.bodyMedium),
             ),
           ],
         ),
       );
     }
 
-    // -- DataTable wrapped for horizontal scroll (avoid overflow)
-    Widget _itemsTable() {
+    // -- Items table (flatten desks, cabinets, etc.)
+    Widget _itemsTable(MerchandiseModel m) {
+      final rows = <DataRow>[];
+
+      void addRows<T>(List<T> list, String label, String Function(T) dims, double Function(T) w, [bool Function(T)? fragile]) {
+        for (var i = 0; i < list.length; i++) {
+          rows.add(DataRow(
+            cells: [
+              DataCell(Text('$label #${i + 1}')),
+              DataCell(Text(dims(list[i]))),
+              DataCell(Text(w(list[i]).toStringAsFixed(2))),
+              DataCell(Text(fragile != null ? (fragile(list[i]) ? 'Yes' : 'No') : '—')),
+            ],
+          ));
+        }
+      }
+
+      addRows<DeskModel>(m.desks, 'Desk',
+              (d) => '${d.length}×${d.width}×${d.height}', (d) => d.weight);
+
+      addRows<CabinetModel>(m.cabinets, 'Cabinet',
+              (d) => '${d.length}×${d.width}×${d.height}', (d) => d.weight);
+
+      addRows<CardboardModel>(m.cardboards, 'Cardboard',
+              (d) => '${d.length}×${d.width}×${d.height}', (d) => d.weight, (d) => d.isFragile);
+
+      addRows<BoxModel>(m.boxes, 'Box',
+              (d) => '${d.length}×${d.width}×${d.height}', (d) => d.weight);
+
+      addRows<PalletModel>(m.pallets, 'Pallet',
+              (d) => '${d.length}×${d.width}×${d.height}', (d) => d.weight);
+
+      addRows<WardrobeModel>(m.wardrobes, 'Wardrobe',
+              (d) => '${d.length}×${d.width}×${d.height}', (d) => d.weight);
+
+      addRows<SofaModel>(m.sofas, 'Sofa',
+              (d) => '${d.length}×${d.width}×${d.height}', (d) => d.weight);
+
+      addRows<MattressModel>(m.mattresses, 'Mattress',
+              (d) => '${d.length}×${d.width}', (d) => d.weight);
+
+      addRows<FurnitureModel>(m.otherFurniture, 'Furniture',
+              (d) => '${d.length}×${d.width}×${d.height}', (d) => d.weight, (d) => d.isFragile);
+
       return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: DataTable(
@@ -151,202 +181,136 @@ class Step7Summary extends StatelessWidget {
             DataColumn(label: Text('Weight (kg)')),
             DataColumn(label: Text('Fragile')),
           ],
-          rows: [
-            ...p.dto.items.asMap().entries.map((e) {
-              final i  = e.key + 1;
-              final it = e.value;
-              return DataRow(
-                cells: [
-                  DataCell(Text('${it.category} #$i')),
-                  DataCell(Text('${it.lengthCm} × ${it.widthCm} × ${it.heightCm}')),
-                  DataCell(Text(it.weightKg.toStringAsFixed(2))),
-                  DataCell(Text(it.fragile ? 'Yes' : 'No')),
-                ],
-              );
-            }),
-          ],
+          rows: rows,
         ),
       );
     }
 
-    // -- readable date/time lines
     String _fmtDate(DateTime? d) =>
         d == null ? '—' : '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
     String _fmtTime(String? t) => (t == null || t.isEmpty) ? '—' : t;
 
     return Scaffold(
-      backgroundColor: kWhiteColor, // ✅ light background for readability
+      backgroundColor: kWhiteColor,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (ctx, constraints) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(12),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
 
-                      // ---- Title ----
-                      Text(
-                        'Step 7 of 8 — Summary',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
+              Text('Step 7 of 8 — Summary', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+              const SizedBox(height: 10),
 
-                      // ---- Service Type ----
-                      _sectionCard(
-                        title: 'Service Type',
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _pill(p.dto.serviceType.name),
-                          ],
-                        ),
-                      ),
+              // Service
+              _sectionCard(
+                title: 'Service Type',
+                child: _pill(p.dto.serviceType),
+              ),
 
-                      // ---- Locations ----
-                      _sectionCard(
-                        title: 'Locations',
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Origin', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 4),
-                            _kv('Address', p.dto.originAddress),
-                            _kv('City / State', '${p.dto.originCity} / ${p.dto.originState}'),
-                            _kv('Postal Code', p.dto.originPostalCode),
-                            _kv('Coordinates', '${p.dto.originLatitude}, ${p.dto.originLongitude}'),
-                            const Divider(height: 16),
-                            Text('Destination', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 4),
-                            _kv('Address', p.dto.destinationAddress),
-                            _kv('City / State', '${p.dto.destinationCity} / ${p.dto.destinationState}'),
-                            _kv('Postal Code', p.dto.destinationPostalCode),
-                            _kv('Coordinates', '${p.dto.destinationLatitude}, ${p.dto.destinationLongitude}'),
-                          ],
-                        ),
-                      ),
-
-                      // ---- Scheduling ----
-                      _sectionCard(
-                        title: 'Scheduling',
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _kv('Pick-up Date', _fmtDate(p.dto.pickUpDate)),
-                            _kv('Pick-up Time', _fmtTime(p.dto.pickUpTime)),
-                            _kv('Delivery Date', _fmtDate(p.dto.deliveryDate)),
-                            _kv('Delivery Time', _fmtTime(p.dto.deliveryTime)),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              runSpacing: 6,
-                              spacing: 6,
-                              children: [
-                                _pill('Pick-up Flex: ${p.dto.pickUpFlexibilityInDays ?? 0}d'),
-                                _pill('Pick-up Flex: ${p.dto.pickUpFlexibilityInHours ?? 0}h'),
-                                _pill('Delivery Flex: ${p.dto.deliveryFlexibilityInDays ?? 0}d'),
-                                _pill('Delivery Flex: ${p.dto.deliveryFlexibilityInHours ?? 0}h'),
-                              ],
-                            ),
-                            const Divider(height: 18),
-                            Text('Floors & Elevators', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 4),
-                            _kv('Departure Floor', '${p.dto.departureFloor ?? 0}'),
-                            _kv('Arrival Floor', '${p.dto.arrivalFloor ?? 0}'),
-                            _kv('Elevator at Departure', (p.dto.isElevatorAvailableForDeparture ?? false) ? 'Yes' : 'No'),
-                            _kv('Elevator at Arrival', (p.dto.isElevatorAvailableForArrival ?? false) ? 'Yes' : 'No'),
-                            const Divider(height: 18),
-                            Text('Dismantling', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 4),
-                            _kv('Required', (p.dto.isDismantlingRequired ?? false) ? 'Yes' : 'No'),
-                            _kv('Type', p.dto.dismantlingType?.name ?? '—'),
-                            _kv('Pieces', '${p.dto.numberOfPiecesToDesmantle ?? 0}'),
-                          ],
-                        ),
-                      ),
-
-                      // ---- Merchandise ----
-                      _sectionCard(
-                        title: 'Merchandise',
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _kv('Type', p.dto.merchandiseType ?? 'General Goods'),
-                            _kv('Total Weight', '${p.dto.totalWeightKg.toStringAsFixed(2)} kg'),
-                            _kv('Total Volume', '${p.dto.totalVolumeM3.toStringAsFixed(3)} m³'),
-                            const SizedBox(height: 8),
-                            Text('Items', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 6),
-                            _itemsTable(),
-                          ],
-                        ),
-                      ),
-
-                      // ---- Vehicle ----
-                      _sectionCard(
-                        title: 'Vehicle',
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _pill('Type: ${p.dto.vehicleType.name}'),
-                            _pill('Capacity: ${p.dto.loadingCapacity.name}'),
-                            _pill('Access: ${p.dto.accessType.name}'),
-                            if (p.dto.maxWidth != null) _pill('Max W: ${p.dto.maxWidth} m'),
-                            if (p.dto.maxHeight != null) _pill('Max H: ${p.dto.maxHeight} m'),
-                          ],
-                        ),
-                      ),
-
-                      // ---- Payment ----
-                      _sectionCard(
-                        title: 'Payment',
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: [
-                                _pill('Method: ${p.dto.paymentMethod.name}'),
-                                _pill('Condition: ${p.dto.paymentCondition.name}'),
-                              ],
-                            ),
-                            if ((p.dto.otherTerms ?? '').isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              _kv('Other Terms', p.dto.otherTerms ?? ''),
-                            ],
-                          ],
-                        ),
-                      ),
-
-                      // ---- Additional ----
-                      _sectionCard(
-                        title: 'Additional Information',
-                        child: _kv('Instructions', p.dto.additionalInstructions ?? '—'),
-                      ),
-
-                      const Spacer(),
-
-                      // ---- Footer (Back / Submit) ----
-                      Row(
-                        children: [
-                          OutlinedButton(onPressed: onBack, child: const Text('Back')),
-                          const Spacer(),
-                          ElevatedButton(onPressed: _submit, child: const Text('Submit')),
-                        ],
-                      ),
-                    ],
-                  ),
+              // Locations
+              _sectionCard(
+                title: 'Locations',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Origin', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    _kv('Address', p.dto.originAddress),
+                    _kv('City / State', '${p.dto.originCity} / ${p.dto.originState}'),
+                    _kv('Postal Code', p.dto.originPostalCode),
+                    _kv('Coordinates', '${p.dto.originLatitude}, ${p.dto.originLongitude}'),
+                    const Divider(height: 16),
+                    Text('Destination', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    _kv('Address', p.dto.destinationAddress),
+                    _kv('City / State', '${p.dto.destinationCity} / ${p.dto.destinationState}'),
+                    _kv('Postal Code', p.dto.destinationPostalCode),
+                    _kv('Coordinates', '${p.dto.destinationLatitude}, ${p.dto.destinationLongitude}'),
+                  ],
                 ),
               ),
-            );
-          },
+
+              // Scheduling
+              _sectionCard(
+                title: 'Scheduling',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _kv('Pick-up Date', _fmtDate(p.dto.pickUpDate)),
+                    _kv('Pick-up Time', _fmtTime(p.dto.pickUpTime)),
+                    _kv('Delivery Date', _fmtDate(p.dto.deliveryDate)),
+                    _kv('Delivery Time', _fmtTime(p.dto.deliveryTime)),
+                  ],
+                ),
+              ),
+
+              // Merchandise
+              if (p.dto.merchandise != null) _sectionCard(
+                title: 'Merchandise',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _kv('Type', p.dto.merchandise!.merchandiseType),
+                    _kv('Description', p.dto.merchandise!.description),
+                    _kv('Total Weight', '${p.dto.merchandise!.totalWeight ?? 0} kg'),
+                    _kv('Total Volume', '${p.dto.merchandise!.totalVolume ?? 0} m³'),
+                    const SizedBox(height: 8),
+                    Text('Items', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    _itemsTable(p.dto.merchandise!),
+                  ],
+                ),
+              ),
+
+              // Vehicle
+              _sectionCard(
+                title: 'Vehicle',
+                child: Wrap(
+                  spacing: 8,
+                  children: [
+                    _pill('Type: ${p.dto.vehicleType}'),
+                    _pill('Capacity: ${p.dto.loadingCapacity}'),
+                    _pill('Access: ${p.dto.accessType}'),
+                  ],
+                ),
+              ),
+
+              // Payment
+              _sectionCard(
+                title: 'Payment',
+                child: Wrap(
+                  spacing: 8,
+                  children: [
+                    _pill('Method: ${p.dto.paymentMethod}'),
+                    _pill('Condition: ${p.dto.paymentCondition}'),
+                  ],
+                ),
+              ),
+
+              // Additional
+              _sectionCard(
+                title: 'Additional',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _kv('Instructions', p.dto.additionalInstructions ?? '—'),
+                    if (p.dto.documentPaths!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text('Documents', style: theme.textTheme.titleMedium),
+                      ...p.dto.documentPaths!.map((d) => Text('• $d')).toList(),
+                    ]
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  OutlinedButton(onPressed: onBack, child: const Text('Back')),
+                  const Spacer(),
+                  ElevatedButton(onPressed: _submit, child: const Text('Submit')),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

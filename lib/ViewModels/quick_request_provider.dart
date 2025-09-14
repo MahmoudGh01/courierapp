@@ -117,7 +117,9 @@ class QuickRequestProvider extends ChangeNotifier {
       "pickUpDate": pickUpDate?.toIso8601String(),
       "deliveryDate": deliveryDate?.toIso8601String(),
       "description": description,
-      "userId": userId, // if your backend binds user by id from DTO
+      "user": {
+        "idUser": userId
+      }
     };
   }
 

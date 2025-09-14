@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/enums.dart';
+import '../../Models/enums.dart';
 import '../../ViewModels/transport_request_provider.dart';
 import '../../Theme/colors.dart';
+import '../../ViewModels/userprovider.dart';
 
 class Step1ServiceType extends StatelessWidget {
   final VoidCallback onNext;
@@ -10,13 +11,19 @@ class Step1ServiceType extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = context.watch<TransportRequestProvider>();
+    final p     = context.watch<TransportRequestProvider>();
     final theme = Theme.of(context);
-
+    final user  = Provider.of<UserProvider>(context, listen: false).user.idUser;
+    print(user);
     Widget chip(ServiceType t, String title, String subtitle) {
-      final selected = p.dto.serviceType == t;
+      final String tName   = t.name; // enum → string
+      final bool selected  = p.dto.serviceType == tName;
+
       return InkWell(
-        onTap: () => context.read<TransportRequestProvider>().setServiceType(t),
+        onTap: () {
+          context.read<TransportRequestProvider>().setServiceType(tName);
+          context.read<TransportRequestProvider>().setUser(user);
+        },
         child: Container(
           height: MediaQuery.of(context).size.height * 0.28,
           width: double.infinity,
@@ -74,15 +81,14 @@ class Step1ServiceType extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: kWhiteColor, // ✅ force white background
+      backgroundColor: kWhiteColor,
       body: SafeArea(
         child: Column(
           children: [
             const SizedBox(height: 20),
             Text(
               'Step 1 of 8 — Service Type',
-              style: theme.textTheme.titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 20),
             Expanded(
