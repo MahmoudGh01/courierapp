@@ -36,7 +36,7 @@ Map<String, String> english() {
     "registerText": "Register",
     "homeText": "Home",
     "accountText": "Account",
-    "myDeliv": "My Deliveries",
+    "myDeliv": "My Requests",
     "pendingDeliv": "Pending Deliveries",
     "pastDeliv": "Past Deliveries",
     "grocery": "Grocery",

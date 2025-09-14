@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'plan_model.dart';
+import 'user_usage_model.dart';
 
 class User {
   int idUser;
@@ -18,6 +20,10 @@ class User {
   String token;
   String refresh;
 
+  // 🔗 Relations
+  PlanModel? plan;
+  UserUsageModel? usage;
+
   User({
     required this.idUser,
     required this.email,
@@ -35,6 +41,8 @@ class User {
     this.isCompany,
     this.companyName,
     this.companyRegistrationNumber,
+    this.plan,
+    this.usage,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -57,8 +65,12 @@ class User {
       companyRegistrationNumber: json['companyRegistrationNumber'],
       token: json['token'] ?? '',
       refresh: json['refresh'] ?? '',
+      plan: json['plan'] != null ? PlanModel.fromJson(json['plan']) : null,
+      usage:
+      json['usage'] != null ? UserUsageModel.fromJson(json['usage']) : null,
     );
   }
+
   factory User.empty() => User(
     idUser: 0,
     name: '',
@@ -76,7 +88,10 @@ class User {
     isCompany: false,
     companyName: '',
     companyRegistrationNumber: '',
+    plan: null,
+    usage: null,
   );
+
   Map<String, dynamic> toMap() {
     return {
       'idUser': idUser,
@@ -95,6 +110,8 @@ class User {
       'companyRegistrationNumber': companyRegistrationNumber,
       'token': token,
       'refresh': refresh,
+      'plan': plan?.toJson(),
+      'usage': usage?.toJson(),
     };
   }
 
