@@ -2,7 +2,8 @@ Map<String, String> english() {
   return {
     "signIn": "Sign in with Email",
     "signUp": "Dont have an account ? Sign Up",
-
+    "passwordText": "Password",
+    "passwordHint": "Enter Password",
     "countryText": "Select Country",
     "phoneText": "Phone number",
     "phoneHint": "Enter phone number",
@@ -26,8 +27,7 @@ Map<String, String> english() {
     "nameHint": "Enter Full name",
     "emailText": "Email Address",
     "emailHint": "Enter Email Address",
-    "passwordText": "Password",
-    "passwordHint": "Enter Password",
+
     "submitText": "Submit",
     "verificationText": "Verification",
     "checkPhoneNetwork": "Check your network or phone number entered",

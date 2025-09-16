@@ -1,4 +1,6 @@
 // lib/models/quick_transport_request_model.dart
+import 'package:courier_app/Models/offer_model.dart';
+
 class QuickTransportRequestModel {
   final int idRequest;
   final String serviceType;
@@ -21,7 +23,7 @@ class QuickTransportRequestModel {
   final DateTime pickUpDate;
   final DateTime? deliveryDate;
   final String description;
-
+  final List<OfferModel>? offers;
   final int? userId;
 
   final DateTime createdAt;
@@ -49,6 +51,8 @@ class QuickTransportRequestModel {
     this.userId,
     required this.createdAt,
     this.updatedAt,
+    this.offers
+
   });
 
   factory QuickTransportRequestModel.fromJson(Map<String, dynamic> j) {
@@ -71,9 +75,15 @@ class QuickTransportRequestModel {
       pickUpDate: DateTime.parse(j['pickUpDate']),
       deliveryDate: j['deliveryDate'] != null ? DateTime.tryParse(j['deliveryDate']) : null,
       description: j['description'] ?? '',
+      offers: j['offers'] != null
+          ? (j['offers'] as List<dynamic>)
+              .map((offer) => OfferModel.fromJson(offer))
+              .toList()
+          : null,
       userId: j['user']?['idUser'],
       createdAt: DateTime.parse(j['createdAt']),
       updatedAt: j['updatedAt'] != null ? DateTime.tryParse(j['updatedAt']) : null,
     );
   }
+
 }

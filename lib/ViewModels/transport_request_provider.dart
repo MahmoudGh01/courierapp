@@ -27,7 +27,6 @@ class TransportRequestProvider extends ChangeNotifier {
       description: '',
     ),
     documentPaths: [], // ✅ start empty
-
   );
 
   TransportRequestModel get dto => _dto;
@@ -205,6 +204,7 @@ class TransportRequestProvider extends ChangeNotifier {
     m.otherFurniture.removeAt(index);
     notifyListeners();
   }
+
   // ---- Step 1
   void setServiceType(String service) {
     _dto = _dto.copyWith(serviceType: service);
@@ -235,7 +235,8 @@ class TransportRequestProvider extends ChangeNotifier {
       originLatitude: lat ?? _dto.originLatitude,
       originLongitude: lng ?? _dto.originLongitude,
       departureFloor: floor ?? _dto.departureFloor,
-      isElevatorAvailableForDeparture: elevator ?? _dto.isElevatorAvailableForDeparture,
+      isElevatorAvailableForDeparture:
+          elevator ?? _dto.isElevatorAvailableForDeparture,
     );
     notifyListeners();
   }
@@ -259,7 +260,8 @@ class TransportRequestProvider extends ChangeNotifier {
       destinationLatitude: lat ?? _dto.destinationLatitude,
       destinationLongitude: lng ?? _dto.destinationLongitude,
       arrivalFloor: floor ?? _dto.arrivalFloor,
-      isElevatorAvailableForArrival: elevator ?? _dto.isElevatorAvailableForArrival,
+      isElevatorAvailableForArrival:
+          elevator ?? _dto.isElevatorAvailableForArrival,
     );
     notifyListeners();
   }
@@ -281,9 +283,12 @@ class TransportRequestProvider extends ChangeNotifier {
       pickUpTime: pickUpTime ?? _dto.pickUpTime,
       deliveryTime: deliveryTime ?? _dto.deliveryTime,
       pickUpFlexibilityInDays: pickUpFlexDays ?? _dto.pickUpFlexibilityInDays,
-      pickUpFlexibilityInHours: pickUpFlexHours ?? _dto.pickUpFlexibilityInHours,
-      deliveryFlexibilityInDays: deliveryFlexDays ?? _dto.deliveryFlexibilityInDays,
-      deliveryFlexibilityInHours: deliveryFlexHours ?? _dto.deliveryFlexibilityInHours,
+      pickUpFlexibilityInHours:
+          pickUpFlexHours ?? _dto.pickUpFlexibilityInHours,
+      deliveryFlexibilityInDays:
+          deliveryFlexDays ?? _dto.deliveryFlexibilityInDays,
+      deliveryFlexibilityInHours:
+          deliveryFlexHours ?? _dto.deliveryFlexibilityInHours,
     );
     notifyListeners();
   }
@@ -304,7 +309,12 @@ class TransportRequestProvider extends ChangeNotifier {
   }
 
   // ---- Step 4 (Vehicle)
-  void setVehicle({String? vehicleType, String? accessType, String? loadingCapacity, double? maxW, double? maxH}) {
+  void setVehicle(
+      {String? vehicleType,
+      String? accessType,
+      String? loadingCapacity,
+      double? maxW,
+      double? maxH}) {
     _dto = _dto.copyWith(
       vehicleType: vehicleType ?? _dto.vehicleType,
       accessType: accessType ?? _dto.accessType,
@@ -316,7 +326,8 @@ class TransportRequestProvider extends ChangeNotifier {
   }
 
   // ---- Step 5 (Payment)
-  void setPayment({String? paymentMethod, String? paymentCondition, String? terms}) {
+  void setPayment(
+      {String? paymentMethod, String? paymentCondition, String? terms}) {
     _dto = _dto.copyWith(
       paymentMethod: paymentMethod ?? _dto.paymentMethod,
       paymentCondition: paymentCondition ?? _dto.paymentCondition,
@@ -353,17 +364,17 @@ class TransportRequestProvider extends ChangeNotifier {
   bool validateStep1() => true;
   bool validateStep2() =>
       _dto.originAddress.isNotEmpty &&
-          _dto.originCity.isNotEmpty &&
-          _dto.originState.isNotEmpty &&
-          _dto.originPostalCode.isNotEmpty &&
-          _dto.originLatitude != null &&
-          _dto.originLongitude != null &&
-          _dto.destinationAddress.isNotEmpty &&
-          _dto.destinationCity.isNotEmpty &&
-          _dto.destinationState.isNotEmpty &&
-          _dto.destinationPostalCode.isNotEmpty &&
-          _dto.destinationLatitude != null &&
-          _dto.destinationLongitude != null;
+      _dto.originCity.isNotEmpty &&
+      _dto.originState.isNotEmpty &&
+      _dto.originPostalCode.isNotEmpty &&
+      _dto.originLatitude != null &&
+      _dto.originLongitude != null &&
+      _dto.destinationAddress.isNotEmpty &&
+      _dto.destinationCity.isNotEmpty &&
+      _dto.destinationState.isNotEmpty &&
+      _dto.destinationPostalCode.isNotEmpty &&
+      _dto.destinationLatitude != null &&
+      _dto.destinationLongitude != null;
 
   bool validateStep3() => _dto.merchandise != null;
   bool validateStep4() => true;
@@ -392,7 +403,8 @@ class TransportRequestProvider extends ChangeNotifier {
         idMerchandise: 0,
         merchandiseType: '',
         description: '',
-      ), documentPaths: [],
+      ),
+      documentPaths: [],
     );
     notifyListeners();
   }
