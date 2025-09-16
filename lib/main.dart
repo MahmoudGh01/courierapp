@@ -13,6 +13,7 @@ import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:provider/provider.dart';
 
 import 'Authentication/auth_wrapper.dart';
+import 'ViewModels/offer_provider.dart';
 import 'ViewModels/quick_request_provider.dart';
 import 'ViewModels/transport_request_provider.dart';
 import 'ViewModels/userprovider.dart';
@@ -34,6 +35,7 @@ void main() async {
           ChangeNotifierProvider(create: (_) => UserProvider()),
           ChangeNotifierProvider(create: (_) => QuickRequestProvider()),
           ChangeNotifierProvider(create: (_) => TransportRequestProvider()),
+          ChangeNotifierProvider(create: (_) => OfferProvider()),
 
         ],
         child: BlocProvider<LanguageCubit>(

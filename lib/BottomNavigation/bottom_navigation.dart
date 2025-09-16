@@ -18,7 +18,7 @@ class BottomNavigation extends StatefulWidget {
 }
 
 class _BottomNavigationState extends State<BottomNavigation> {
-  int _currentIndex = 1;
+  int _currentIndex = 2;
   final List<Widget> _children = <Widget>[
     const MyDeliveriesPage(),
     const DashboardScreen(),

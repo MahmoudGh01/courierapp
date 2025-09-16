@@ -26,9 +26,7 @@ class UserProvider extends ChangeNotifier {
     companyRegistrationNumber: '',
   );
 
-
   User get user => _user;
-
 
   void setUser(Map<String, dynamic> userMap) {
     _user = User.fromJson(userMap);
@@ -39,8 +37,6 @@ class UserProvider extends ChangeNotifier {
     _user = user;
     notifyListeners();
   }
-
-
 
   void setPasswordResetEmail(String email) {
     _user.email = email;
@@ -80,7 +76,10 @@ class UserProvider extends ChangeNotifier {
     try {
       var res = await http.get(
         Uri.parse('${Constants.uri}auth/me'),
-        headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json'
+        },
       );
 
       if (res.statusCode == 200) {
@@ -99,7 +98,10 @@ class UserProvider extends ChangeNotifier {
         token = prefs.getString('token') ?? '';
         res = await http.get(
           Uri.parse('${Constants.uri}auth/me'),
-          headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json'
+          },
         );
         if (res.statusCode == 200) {
           final body = jsonDecode(res.body);
@@ -128,7 +130,6 @@ class UserProvider extends ChangeNotifier {
 
       final uri = Uri.parse('${Constants.uri}users/modify-users/$userId');
       final body = {
-
         'name': name,
         'email': email,
         'image': profilePicturePath ?? '',
@@ -144,7 +145,7 @@ class UserProvider extends ChangeNotifier {
         body: jsonEncode(body),
         headers: {
           'Content-Type': "application/json; charset=UTF-8",
-          'Authorization': 'Bearer $token',   // ✅ add token here
+          'Authorization': 'Bearer $token', // ✅ add token here
         },
       );
 
@@ -158,7 +159,4 @@ class UserProvider extends ChangeNotifier {
       print('Edit user error: $e');
     }
   }
-
-
-
 }

@@ -6,17 +6,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Models/quick_transport_request_model.dart';
 import '../Models/transport_request_model.dart';
 import '../utils/constants.dart';
+import '../utils/http_client.dart';
 
 class DeliveriesApi {
   static Future<List<QuickTransportRequestModel>> fetchQuickRequests() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token  = prefs.getString('token') ?? '';
 
-    final uri = Uri.parse('${Constants.uri}QuickTransportRequest/retrieve-all-QuickTransportRequests');
-    final res = await http.get(uri, headers: {
-      'Content-Type': 'application/json',
-      if (token.isNotEmpty) 'Authorization': 'Bearer $token',
-    });
+    final res = await HttpClient.get("QuickTransportRequest/retrieve-all-QuickTransportRequests");
 
     if (res.statusCode == 200) {
       final data = jsonDecode(res.body) as List;
@@ -26,14 +21,8 @@ class DeliveriesApi {
   }
 
   static Future<List<TransportRequestModel>> fetchTransportRequests() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token  = prefs.getString('token') ?? '';
+    final res = await HttpClient.get("TransportRequest/retrieve-all-TransportRequests");
 
-    final uri = Uri.parse('${Constants.uri}TransportRequest/retrieve-all-TransportRequests');
-    final res = await http.get(uri, headers: {
-      'Content-Type': 'application/json',
-      if (token.isNotEmpty) 'Authorization': 'Bearer $token',
-    });
 
     if (res.statusCode == 200) {
       final data = jsonDecode(res.body) as List;
