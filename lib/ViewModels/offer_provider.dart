@@ -11,7 +11,10 @@ class OfferProvider extends ChangeNotifier {
     _offers = await OfferService.getAllOffersByQuickRequestId(idRequest);
     notifyListeners();
   }
-
+  Future<void> fetchOffersT(int idRequest) async {
+    _offers = await OfferService.getAllOffersByTRequestId(idRequest);
+    notifyListeners();
+  }
 
   // accept offer
   Future<bool> acceptOffer(int id, int idRequest) async {
@@ -24,6 +27,18 @@ class OfferProvider extends ChangeNotifier {
   Future<bool> refuseOffer(int id, int idRequest) async {
     final ok = await OfferService.refuseOffer(id);
     if (ok) await fetchOffers(idRequest); // ✅ refresh with request id
+    return ok;
+  }
+  Future<bool> acceptOfferT(int id, int idRequest) async {
+    final ok = await OfferService.acceptOffer(id);
+    if (ok) await fetchOffersT(idRequest); // ✅ refresh with request id
+    return ok;
+  }
+
+  // refuse offer
+  Future<bool> refuseOfferT(int id, int idRequest) async {
+    final ok = await OfferService.refuseOffer(id);
+    if (ok) await fetchOffersT(idRequest); // ✅ refresh with request id
     return ok;
   }
 }

@@ -57,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
         "images/home3.png",
         locale.getGrocery,
         locale.getGroceryText,
-        PageRoutes.arrangeDeliveryPage,
+        null
       ),
     ];
     final List<Ad> ads = [
@@ -133,14 +133,20 @@ class _HomeScreenState extends State<HomeScreen> {
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 64.0),
         children: [
-          PlanUsageBanner(
-            planName: user.plan?.name ?? '-',             // TODO: from provider
-            quickUsed: user.usage!.quickTransportRequestsUsed ?? 0 ,                    // TODO: from provider
-            quickLimit: user.plan!.limits?.quickTransportRequestsPerMonth ?? 0,                  // TODO: from provider
-            transportUsed: user.usage?.transportRequestsUsed ?? 0,                // TODO: from provider
-            transportLimit: user.plan!.limits?.transportRequestsPerMonth ?? 0,               // TODO: from provider
-            onUpgrade: () {},                // TODO: open upgrade screen
-            onDetails: () {},                // TODO: open usage details
+          Consumer<UserProvider>(
+            builder: (context, userProvider, _) {
+              final user = userProvider.user;
+
+              return PlanUsageBanner(
+                planName: user.plan?.name ?? '-',
+                quickUsed: user.usage?.quickTransportRequestsUsed ?? 0,
+                quickLimit: user.plan?.limits?.quickTransportRequestsPerMonth ?? 0,
+                transportUsed: user.usage?.transportRequestsUsed ?? 0,
+                transportLimit: user.plan?.limits?.transportRequestsPerMonth ?? 0,
+                onUpgrade: () {},                // TODO: open upgrade screen
+                onDetails: () {},                // TODO: open usage details
+              );
+            },
           ),
           Padding(
             padding: const EdgeInsets.only(top: 30),

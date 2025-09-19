@@ -208,13 +208,13 @@ class _DropStepState extends State<DropStep> {
                   padding: 10,
                   text: '     ${locale.continueText}  ↓    ',
                   onPressed: () {
-                    final q = context.read<QuickRequestProvider>();
+                    final q = context.read<QuickRequestProvider>().quickRequest;
                     final valid = q.destinationAddress.isNotEmpty &&
                         q.destinationCity.isNotEmpty &&
                         q.destinationState.isNotEmpty &&
                         q.destinationPostalCode.isNotEmpty &&
-                        q.destinationLatitude != null &&
-                        q.destinationLongitude != null;
+                        q.destinationLatitude != 0.0 &&
+                        q.destinationLongitude != 0.0;
                     if (!valid) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('locale.pleaseEnterAllDetails')),

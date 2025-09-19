@@ -3,14 +3,18 @@ import 'package:courier_app/QuickTransportRequest/quick_transport_request_page.d
 import 'package:courier_app/Routes/routes.dart';
 import 'package:courier_app/Theme/colors.dart';
 import 'package:courier_app/Theme/style.dart';
+import 'package:courier_app/ViewModels/quick_request_provider.dart';
 import 'package:courier_app/locale/locales.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import '../../Models/enums.dart';
 import '../../Models/quick_transport_request_model.dart';
 import '../../Models/transport_request_model.dart';
 import '../../Pages/track_delivery.dart';
 import '../../Service/deliveries_api.dart';
+import '../../ViewModels/userprovider.dart';
 
 class OrderCard {
   final String image;
@@ -50,14 +54,19 @@ class _MyDeliveriesPageState extends State<MyDeliveriesPage> {
   @override
   void initState() {
     super.initState();
-    // NOTE: You can replace these with your real lists (API/provider) later
+    final provider = Provider.of<QuickRequestProvider>(context, listen: false);
+    var user = Provider.of<UserProvider>(context, listen: false).user;
 
+    provider.fetchQuickRequests(user.idUser.toString());
+    provider.fetchTransportRequests(user.idUser.toString());
   }
 
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     final theme  = Theme.of(context);
+
+    var user = Provider.of<UserProvider>(context, listen: false).user;
 
     return DefaultTabController(
       length: 2,
@@ -91,108 +100,45 @@ class _MyDeliveriesPageState extends State<MyDeliveriesPage> {
         body: TabBarView(
           physics: const BouncingScrollPhysics(),
           children: [
-            // Tab 1: Quick
-            FutureBuilder(
-              future: DeliveriesApi.fetchQuickRequests(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final items = snapshot.data as List<QuickTransportRequestModel>;
-                if (items.isEmpty) {
-                  return _emptyState(context, 'No Results Found');
-                }
 
-                // 👉 Show all in "Pending" (and empty "Past"). You can split by status if needed.
-                return _buildTabListWithModels(
-                  context,
-                  titlePending: locale.pendingDeliv,
-                  pendingModels: items,
-                  titlePast: locale.pastDeliv,
-                  pastModels: const [],
+            // --- Quick Requests ---
+            Consumer<QuickRequestProvider>(
+              builder: (context, provider, _) {
+                return RefreshIndicator(
+                  onRefresh: () => provider.fetchQuickRequests(user.idUser.toString()), // 🟢 pull-to-refresh
+                  child: provider.loadingQuick
+                      ? const Center(child: CircularProgressIndicator())
+                      : provider.quickRequests.isEmpty
+                      ? _emptyState(context, "No Quick Requests")
+                      : _buildModelList(context, provider.quickRequests),
                 );
               },
             ),
 
-            // Tab 2: Transport
-            FutureBuilder(
-              future: DeliveriesApi.fetchTransportRequests(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final items = snapshot.data as List<TransportRequestModel>;
-                if (items.isEmpty) {
-                  return _emptyState(context, 'No Results Found');
-                }
-                return _buildTabListWithModels(
-                  context,
-                  titlePending: locale.pendingDeliv,
-                  pendingModels: items,
-                  titlePast: locale.pastDeliv,
-                  pastModels: const [],
+            // --- Transport Requests ---
+            Consumer<QuickRequestProvider>(
+              builder: (context, provider, _) {
+                return RefreshIndicator(
+                  onRefresh: () => provider.fetchTransportRequests(user.idUser.toString()), // 🟢 pull-to-refresh
+                  child: provider.loadingTransport
+                      ? const Center(child: CircularProgressIndicator())
+                      : provider.transportRequests.isEmpty
+                      ? _emptyState(context, "No Transport Requests")
+                      : _buildModelList(context, provider.transportRequests),
                 );
               },
             ),
           ],
         ),
+
       ),
     );
   }
 
-  /// Build one tab list (Pending + Past) using MODEL arrays directly.
-  Widget _buildTabListWithModels(
-      BuildContext context, {
-        required String titlePending,
-        required List<dynamic> pendingModels,
-        required String titlePast,
-        required List<dynamic> pastModels,
-      }) {
-    final theme = Theme.of(context);
-    return ClipRRect(
-      borderRadius: const BorderRadius.only(topLeft: Radius.circular(35.0)),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 56.0),
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.only(topLeft: Radius.circular(35.0)),
-          color: theme.cardColor,
-        ),
-        child: ListView(
-          physics: const BouncingScrollPhysics(),
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Text(
-                titlePending,
-                style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  color: theme.hoverColor.withOpacity(0.5),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            _buildModelList(context, pendingModels),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Text(
-                titlePast,
-                style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  color: theme.hoverColor.withOpacity(0.5),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            _buildModelList(context, pastModels),
-          ],
-        ),
-      ),
-    );
-  }
 
   /// Reusable list builder (handles both Quick & Transport models)
   Widget _buildModelList(BuildContext context, List<dynamic> models) {
     return ListView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
       itemCount: models.length,
       itemBuilder: (context, index) {
         final m = models[index];
@@ -207,23 +153,25 @@ class _MyDeliveriesPageState extends State<MyDeliveriesPage> {
   }
 
   /// QuickTransport card → goes to QuickTransportItemPage
+  /// QuickTransport card → QuickTransportItemPage
   Widget _buildQuickCard(BuildContext context, QuickTransportRequestModel m) {
     final theme = Theme.of(context);
-    const title = 'Quick Transport';
-    final time = (m.createdAt ?? DateTime.now()).toLocal().toString().split('.').first;
-    final status = m.status ?? '';
-    final sender = m.originCity;
-    final receiver = m.destinationCity;
+
+    final createdAt = (m.createdAt ?? DateTime.now());
+    final pickUp = m.pickUpDate ?? DateTime.now();
+    final delivery = m.deliveryDate;
 
     return _buildBaseCard(
       context,
       theme,
-      title: title,
-      time: time,
-      status: status,
-      price: '-',
-      sender: sender,
-      receiver: receiver,
+      title: 'Quick Transport',
+      time: DateFormat.yMMMd().format(createdAt),
+      status: m.status ?? '',
+      price: '-', // ⚡️ tu peux remplacer si ton modèle a un champ prix
+      sender: m.originCity,
+      receiver: m.destinationCity,
+      pickUpDate: DateFormat.yMMMd().format(pickUp),
+      deliveryDate: delivery != null ? DateFormat.yMMMd().format(delivery) : 'N/A',
       onTap: () {
         Navigator.push(
           context,
@@ -233,24 +181,24 @@ class _MyDeliveriesPageState extends State<MyDeliveriesPage> {
     );
   }
 
-  /// TransportRequest card → goes to TrackDelivery
+  /// TransportRequest card → TrackDelivery
   Widget _buildTransportCard(BuildContext context, TransportRequestModel m) {
     final theme = Theme.of(context);
-    const title = 'Transport Request';
-    final time = (m.pickUpDate ?? DateTime.now()).toLocal().toString().split('.').first;
-    final status = enumToString(m.status);
-    final sender = m.originCity;
-    final receiver = m.destinationCity;
+
+    final pickUp = m.pickUpDate ?? DateTime.now();
+    final delivery = m.deliveryDate;
 
     return _buildBaseCard(
       context,
       theme,
-      title: title,
-      time: time,
-      status: status,
-      price: '-',
-      sender: sender,
-      receiver: receiver,
+      title: 'Transport Request',
+      time: DateFormat.yMMMd().format(m.createdAt ?? DateTime.now()),
+      status: enumToString(m.status),
+      price: '-', // ⚡️ pareil, adapte si modèle contient un prix
+      sender: m.originCity,
+      receiver: m.destinationCity,
+      pickUpDate: DateFormat.yMMMd().format(pickUp),
+      deliveryDate: delivery != null ? DateFormat.yMMMd().format(delivery) : 'N/A',
       onTap: () {
         Navigator.push(
           context,
@@ -260,7 +208,6 @@ class _MyDeliveriesPageState extends State<MyDeliveriesPage> {
     );
   }
 
-  /// Shared card layout
   Widget _buildBaseCard(
       BuildContext context,
       ThemeData theme, {
@@ -270,84 +217,147 @@ class _MyDeliveriesPageState extends State<MyDeliveriesPage> {
         required String price,
         required String sender,
         required String receiver,
+        required String pickUpDate,
+        required String deliveryDate,
         required VoidCallback onTap,
       }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          height: 120,
-          decoration: BoxDecoration(
-            boxShadow: [boxShadow],
-            borderRadius: BorderRadius.circular(10.0),
-            color: kWhiteColor,
-          ),
-          child: Column(
-            children: <Widget>[
-              Expanded(
-                child: ListTile(
-                  contentPadding: const EdgeInsetsDirectional.only(end: 16),
-                  leading: FadedScaleAnimation(
-                    child: Image.asset("images/home1.png"),
-                  ),
-                  title: Text(
-                    title,
-                    style: theme.textTheme.titleMedium!.copyWith(
-                      color: theme.primaryColorDark,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: Text(time, style: theme.textTheme.titleMedium!.copyWith(fontSize: 12)),
-                  trailing: RichText(
-                    textAlign: TextAlign.right,
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: '$status\n',
-                          style: theme.textTheme.bodyLarge!.copyWith(
-                            color: theme.primaryColor,
-                            height: 1.5,
+    // --- Status color
+    Color statusColor = Colors.orange;
+    if (status.toUpperCase() == "PUBLISHED" || status.toUpperCase() == "ACCEPTED") {
+      statusColor = Colors.green;
+    } else if (status.toUpperCase() == "REJECTED" || status.toUpperCase() == "CANCELLED") {
+      statusColor = Colors.red;
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12, left: 12, right: 12),
+        decoration: BoxDecoration(
+          boxShadow: [boxShadow],
+          borderRadius: BorderRadius.circular(10.0),
+          color: theme.colorScheme.surface,
+        ),
+        child: Column(
+          children: <Widget>[
+            // --- Top Row (title + createdAt + status badge)
+            Row(
+              children: [
+                Image.asset('images/home1.png', width: 60),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontSize: 16,
                             fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        TextSpan(
-                          text: price,
-                          style: theme.textTheme.titleMedium!.copyWith(fontSize: 14, height: 1.5),
-                        ),
-                      ],
+                          )),
+                      const SizedBox(height: 4),
+                      Text(time,
+                          style: theme.textTheme.bodySmall
+                              ?.copyWith(color: theme.hintColor)),
+                    ],
+                  ),
+                ),
+                Container(
+                  height: 36,
+                  width: 120,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: statusColor,
+                      width: 2,
                     ),
                   ),
+                  child: Center(
+                    child: Text(
+                      status,
+                      style: theme.textTheme.bodySmall!.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: statusColor,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            // --- Dates Row
+            Row(
+              children: <Widget>[
+                const SizedBox(width: 76.0),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                          text: 'Pick-up date\n',
+                          style: theme.textTheme.bodySmall!.copyWith(
+                              color: theme.hintColor,
+                              fontWeight: FontWeight.bold)),
+                      TextSpan(
+                          text: pickUpDate,
+                          style: theme.textTheme.bodyLarge),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                          text: 'Delivery date\n',
+                          style: theme.textTheme.bodySmall!.copyWith(
+                              color: theme.hintColor,
+                              fontWeight: FontWeight.bold)),
+                      TextSpan(
+                          text: deliveryDate,
+                          style: theme.textTheme.bodyLarge),
+                    ],
+                  ),
+                ),
+                const Spacer(flex: 2),
+              ],
+            ),
+
+            // --- Bottom Row (cities)
+            Container(
+              height: 48,
+              decoration: const BoxDecoration(
+                color: Color(0xfffafafa),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(10.0),
+                  bottomRight: Radius.circular(10.0),
                 ),
               ),
-              Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  color: theme.cardColor.withOpacity(0.2),
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(10.0),
-                    bottomRight: Radius.circular(10.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 90),
+                    child: Text(sender,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall),
                   ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 90),
-                      child: Text(sender, overflow: TextOverflow.ellipsis, style: theme.textTheme.bodySmall),
-                    ),
-                    Icon(Icons.location_on, color: theme.primaryColor.withOpacity(0.3), size: 21.0),
-                    Text("•••••••", style: theme.textTheme.bodySmall!.copyWith(color: theme.hoverColor.withOpacity(0.7))),
-                    Icon(Icons.navigation, color: theme.primaryColor.withOpacity(0.3), size: 21.0),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 90),
-                      child: Text(receiver, overflow: TextOverflow.ellipsis, style: theme.textTheme.bodySmall),
-                    ),
-                  ],
-                ),
-              )
-            ],
-          ),
+                  Icon(Icons.location_on,
+                      color: theme.primaryColor.withOpacity(0.4), size: 21.0),
+                  Text("•••••••",
+                      style: theme.textTheme.bodySmall!.copyWith(
+                          color: theme.hoverColor.withOpacity(0.7))),
+                  Icon(Icons.navigation,
+                      color: theme.primaryColor.withOpacity(0.4), size: 21.0),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 90),
+                    child: Text(receiver,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

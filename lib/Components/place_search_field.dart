@@ -10,6 +10,8 @@ class PlaceSearchField extends StatefulWidget {
   final GooglePlacesService service;
   final TextEditingController controller;
   final String? hintText;
+  final FocusNode? focusNode;   // ✅ new
+
   final void Function(AddressParts parts) onPlaceResolved;
 
   const PlaceSearchField({
@@ -17,7 +19,7 @@ class PlaceSearchField extends StatefulWidget {
     required this.service,
     required this.controller,
     required this.onPlaceResolved,
-    this.hintText,
+    this.hintText, this.focusNode,
   });
 
   @override
@@ -30,6 +32,8 @@ class _PlaceSearchFieldState extends State<PlaceSearchField> {
     final theme = Theme.of(context);
 
     return GooglePlaceAutoCompleteTextField(
+      focusNode: widget.focusNode,   // ✅ wire it here
+
       textEditingController: widget.controller,
       googleAPIKey: widget.service.apiKey,   // pass key here
       inputDecoration: InputDecoration(

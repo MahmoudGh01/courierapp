@@ -1,10 +1,12 @@
 import 'package:animation_wrappers/animation_wrappers.dart';
 import 'package:courier_app/Theme/colors.dart';
 import 'package:courier_app/Theme/style.dart';
-import 'package:courier_app/locale/locales.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../Models/transport_request_model.dart';
+import '../transport_request/Offers/offers_list.dart';
+
 class SlideUpPanel extends StatefulWidget {
   final TransportRequestModel item;
   const SlideUpPanel({super.key, required this.item});
@@ -16,7 +18,7 @@ class SlideUpPanel extends StatefulWidget {
 class _SlideUpPanelState extends State<SlideUpPanel> {
   @override
   Widget build(BuildContext context) {
-    final m     = widget.item;
+    final m = widget.item;
     final theme = Theme.of(context);
 
     return DraggableScrollableSheet(
@@ -29,38 +31,87 @@ class _SlideUpPanelState extends State<SlideUpPanel> {
           controller: controller,
           padding: const EdgeInsets.symmetric(horizontal: 6.7),
           children: <Widget>[
-            // ---- Addresses ----
-            _sectionCard(
-              context,
-              title: 'Addresses',
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: Icon(Icons.location_on, color: Colors.redAccent),
-                    title: Text(m.originCity, style: theme.textTheme.titleLarge),
-                    subtitle: Text(m.originAddress),
+            _surfaceCard(
+              context, // action card
+              child: ListTile(
+                // list tile
+                title: Text(
+                  // title
+                  'View Offers',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    // style
+                    fontWeight: FontWeight.w700, // bold
                   ),
-                  ListTile(
-                    leading: Icon(Icons.navigation, color: Colors.blueAccent),
-                    title: Text(m.destinationCity, style: theme.textTheme.titleLarge),
-                    subtitle: Text(m.destinationAddress),
+                ),
+                trailing: FadedScaleAnimation(
+                  // animated cta
+                  child: CircleAvatar(
+                    // round button
+                    radius: 24, // size
+                    backgroundColor: kMainColor, // accent
+                    child: const Icon(Icons.arrow_forward_ios,
+                        size: 18, color: Colors.white), // icon
+                  ),
+                ),
+                onTap: () {
+                  // navigate
+                  Navigator.push(
+                    // push offers
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => OffersListPage(
+                          requestId: widget.item.idTransportRequest), // pass id
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 10), // gap
+            // ---- Addresses ----
+            _surfaceCard(
+              context,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _SectionHeader(
+                    icon: Icons.route_rounded,
+                    title: 'Route',
+                  ),
+                  const SizedBox(height: 6),
+                  _LocationTile(
+                    icon: Icons.location_on_rounded,
+                    title: m.originAddress ?? '-',
+                    subtitle: 'Origin Address',
+                    dotColor: theme.primaryColor,
+                  ),
+                  const SizedBox(height: 8),
+                  _DashedDivider(color: theme.dividerColor.withOpacity(0.4)),
+                  const SizedBox(height: 8),
+                  _LocationTile(
+                    icon: Icons.flag_rounded,
+                    title: m.destinationAddress ?? '-',
+                    subtitle: 'Destination Address',
+                    dotColor: Colors.green,
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 10),
 
-            // ---- Details ----
-            _sectionCard(
+// ---- Details ----
+            _surfaceCard(
               context,
-              title: 'Details',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  _SectionHeader(icon: Icons.info_outline, title: 'Details'),
+                  const SizedBox(height: 12),
                   _kvRow(context, 'Service Type', m.serviceType),
                   _kvRow(context, 'Status', m.status),
-                  _kvRow(context, 'Pick-up Date', m.pickUpDate?.toIso8601String() ?? '—'),
-                  _kvRow(context, 'Delivery Date', m.deliveryDate?.toIso8601String() ?? '—'),
+                  _kvRow(context, 'Pick-up Date',
+                      DateFormat.yMMMd().format(m.pickUpDate!) ?? '—'),
+                  _kvRow(context, 'Delivery Date',
+                      DateFormat.yMMMd().format(m.deliveryDate!) ?? '—'),
                   _kvRow(context, 'Pick-up Time', m.pickUpTime ?? '—'),
                   _kvRow(context, 'Delivery Time', m.deliveryTime ?? '—'),
                   _kvRow(context, 'Vehicle Type', m.vehicleType ?? '—'),
@@ -74,88 +125,117 @@ class _SlideUpPanelState extends State<SlideUpPanel> {
             const SizedBox(height: 10),
 
             // ---- Merchandise ----
-            // ---- Merchandise ----
             _sectionCard(
               context,
               title: 'Merchandise',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _kvRow(context, 'Merchandise Type', m.merchandise?.merchandiseType ?? '—'),
-                  _kvRow(context, 'Loading Type',      m.merchandise?.loadingType ?? '—'),
-                  _kvRow(context, 'Total Weight',      '${m.merchandise?.totalWeight ?? 0} kg'),
-                  _kvRow(context, 'Total Volume',      '${m.merchandise?.totalVolume ?? 0} m³'),
+                  _kvRow(context, 'Merchandise Type',
+                      m.merchandise?.merchandiseType ?? '—'),
+                  _kvRow(context, 'Loading Type',
+                      m.merchandise?.loadingType ?? '—'),
+                  _kvRow(context, 'Total Weight',
+                      '${m.merchandise?.totalWeight ?? 0} kg'),
+                  _kvRow(context, 'Total Volume',
+                      '${m.merchandise?.totalVolume ?? 0} m³'),
                   const SizedBox(height: 6),
 
-                  _kvRow(context, 'Special handling', (m.merchandise?.isSpecialHandlingRequired ?? false) ? 'Yes' : 'No'),
-                  _kvRow(context, 'Additional protection', (m.merchandise?.isAdditionalProtectionRequired ?? false) ? 'Yes' : 'No'),
-                  _kvRow(context, 'Tail lift required', (m.merchandise?.isVehicleWithTailElevatorRequired ?? false) ? 'Yes' : 'No'),
+                  _kvRow(
+                      context,
+                      'Special handling',
+                      (m.merchandise?.isSpecialHandlingRequired ?? false)
+                          ? 'Yes'
+                          : 'No'),
+                  _kvRow(
+                      context,
+                      'Additional protection',
+                      (m.merchandise?.isAdditionalProtectionRequired ?? false)
+                          ? 'Yes'
+                          : 'No'),
+                  _kvRow(
+                      context,
+                      'Tail lift required',
+                      (m.merchandise?.isVehicleWithTailElevatorRequired ??
+                              false)
+                          ? 'Yes'
+                          : 'No'),
 
                   const Divider(height: 24),
-                  Text('Items', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                  Text('Items',
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   _tableHeader(context),
 
                   // 🔽 Render desks
                   ...m.merchandise?.desks.map((d) => _tableRow(
-                      context,
-                      "Desk",
-                      "1",
-                      "${d.length}×${d.width}×${d.height}",
-                      "${d.weight}"
-                  )) ?? [],
+                          context,
+                          "Desk",
+                          "1",
+                          "${d.length}×${d.width}×${d.height}",
+                          "${d.weight}")) ??
+                      [],
+                  ...m.merchandise?.boxes.map((d) => _tableRow(
+                          context,
+                          "Box",
+                          "1",
+                          "${d.length}×${d.width}×${d.height}",
+                          "${d.weight}")) ??
+                      [],
 
                   // 🔽 Render cabinets
                   ...m.merchandise?.cabinets.map((c) => _tableRow(
-                      context,
-                      "Cabinet",
-                      "1",
-                      "${c.length}×${c.width}×${c.height}",
-                      "${c.weight}"
-                  )) ?? [],
+                          context,
+                          "Cabinet",
+                          "1",
+                          "${c.length}×${c.width}×${c.height}",
+                          "${c.weight}")) ??
+                      [],
 
                   // 🔽 Render sofas
                   ...m.merchandise?.sofas.map((s) => _tableRow(
-                      context,
-                      "Sofa",
-                      "1",
-                      "${s.length}×${s.width}×${s.height}",
-                      "${s.weight}"
-                  )) ?? [],
+                          context,
+                          "Sofa",
+                          "1",
+                          "${s.length}×${s.width}×${s.height}",
+                          "${s.weight}")) ??
+                      [],
 
                   // 🔽 Render mattresses
                   ...m.merchandise?.mattresses.map((mt) => _tableRow(
-                      context,
-                      "Mattress",
-                      "1",
-                      "${mt.length}×${mt.width}",
-                      "${mt.weight}"
-                  )) ?? [],
+                          context,
+                          "Mattress",
+                          "1",
+                          "${mt.length}×${mt.width}",
+                          "${mt.weight}")) ??
+                      [],
 
                   // 🔽 Render cardboards
                   ...m.merchandise?.cardboards.map((cb) => _tableRow(
-                      context,
-                      "Cardboard (fragile: ${cb.isFragile ? "Yes" : "No"})",
-                      "1",
-                      "${cb.length}×${cb.width}×${cb.height}",
-                      "${cb.weight}"
-                  )) ?? [],
+                          context,
+                          "Cardboard (fragile: ${cb.isFragile ? "Yes" : "No"})",
+                          "1",
+                          "${cb.length}×${cb.width}×${cb.height}",
+                          "${cb.weight}")) ??
+                      [],
 
                   // 🔽 Render other furniture
                   ...m.merchandise?.otherFurniture.map((f) => _tableRow(
-                      context,
-                      f.description ?? "Furniture",
-                      "1",
-                      "${f.length}×${f.width}×${f.height}",
-                      "${f.weight}"
-                  )) ?? [],
+                          context,
+                          f.description ?? "Furniture",
+                          "1",
+                          "${f.length}×${f.width}×${f.height}",
+                          "${f.weight}")) ??
+                      [],
 
                   const Divider(),
                   Align(
                     alignment: Alignment.centerRight,
                     child: Text(
                       'Total Weight: ${m.merchandise?.totalWeight ?? 0} kg',
-                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -193,7 +273,9 @@ class _SlideUpPanelState extends State<SlideUpPanel> {
   }
 
   // ----------------- UI HELPERS -----------------
-  Widget _sectionCard(BuildContext context, {required String title, required Widget child}) {
+
+  Widget _sectionCard(BuildContext context,
+      {required String title, required Widget child}) {
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
@@ -205,10 +287,11 @@ class _SlideUpPanelState extends State<SlideUpPanel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: theme.textTheme.titleMedium?.copyWith(
-            color: theme.primaryColorDark,
-            fontWeight: FontWeight.w700,
-          )),
+          Text(title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.primaryColorDark,
+                fontWeight: FontWeight.w700,
+              )),
           const SizedBox(height: 12),
           child,
         ],
@@ -224,22 +307,25 @@ class _SlideUpPanelState extends State<SlideUpPanel> {
         children: [
           Expanded(
             flex: 5,
-            child: Text(k, style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.hintColor.withOpacity(0.7),
-            )),
+            child: Text(k,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.hintColor.withOpacity(0.7),
+                )),
           ),
           Expanded(
             flex: 7,
-            child: Text(v, style: theme.textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w600, height: 1.4,
-            ), textAlign: TextAlign.right),
+            child: Text(v,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.right),
           )
         ],
       ),
     );
   }
 }
-
 
 Widget _tableHeader(BuildContext context) {
   final theme = Theme.of(context);
@@ -289,3 +375,110 @@ Widget _thCell(BuildContext context, String label, {int flex = 1}) {
   );
 }
 
+Widget _surfaceCard(BuildContext context, {required Widget child}) {
+  final theme = Theme.of(context);
+  return Container(
+    padding: const EdgeInsets.only(top: 12, bottom: 8, left: 20, right: 20),
+    decoration: BoxDecoration(
+      color: kWhiteColor,
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: [
+        BoxShadow(
+          color: theme.shadowColor.withOpacity(0.05),
+          blurRadius: 8,
+          offset: const Offset(0, 3),
+        )
+      ],
+    ),
+    child: child,
+  );
+}
+
+class _SectionHeader extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  const _SectionHeader({required this.icon, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Icon(icon, color: theme.primaryColor, size: 20),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: theme.primaryColorDark,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _LocationTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color dotColor;
+  const _LocationTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.dotColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Icon(icon, color: dotColor),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title,
+                  style: theme.textTheme.bodyLarge
+                      ?.copyWith(fontWeight: FontWeight.w600)),
+              Text(subtitle,
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: theme.hintColor)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DashedDivider extends StatelessWidget {
+  final Color color;
+  const _DashedDivider({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final dashWidth = 4.0;
+        final dashHeight = 1.0;
+        final dashCount = (constraints.maxWidth / (2 * dashWidth)).floor();
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(dashCount, (_) {
+            return SizedBox(
+              width: dashWidth,
+              height: dashHeight,
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: color),
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+}

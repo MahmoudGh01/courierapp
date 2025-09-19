@@ -16,8 +16,10 @@ class OfferService {
     return res.statusCode == 200;
   }
 
-  static Future<List<OfferModel>> getAllOffersByQuickRequestId(int idRequest) async {
-    final res = await HttpClient.get("QuickTransportRequest/retrieve-QuickTransportRequest/$idRequest");
+  static Future<List<OfferModel>> getAllOffersByQuickRequestId(
+      int idRequest) async {
+    final res = await HttpClient.get(
+        "QuickTransportRequest/retrieve-QuickTransportRequest/$idRequest");
 
     if (res.statusCode == 200) {
       final data = jsonDecode(res.body);
@@ -31,5 +33,20 @@ class OfferService {
     return [];
   }
 
+  static Future<List<OfferModel>> getAllOffersByTRequestId(
+      int idRequest) async {
+    final res = await HttpClient.get(
+        "TransportRequest/retrieve-TransportRequest/$idRequest");
 
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body);
+
+      // extract the offers list
+      final offersJson = data['offers'] as List<dynamic>? ?? [];
+
+      return offersJson.map((j) => OfferModel.fromJson(j)).toList();
+    }
+
+    return [];
+  }
 }

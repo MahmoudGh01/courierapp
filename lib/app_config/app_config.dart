@@ -1,5 +1,5 @@
 class AppConfig {
-  static const String appName = "CourierApp";
+  static const String appName = "Sheapit";
   static const String packageName = "com.flutter.courier_app";
   static const String defaultLanguage = "en";
   static const String defaultTheme = 'light';

@@ -34,7 +34,7 @@ class Step7Summary extends StatelessWidget {
       final token   = prefs.getString('token') ?? '';
 
       try {
-        final res = await http.post(
+        var res = await http.post(
           Uri.parse('${Constants.uri}TransportRequest/add-TransportRequest'),
           headers: {
             'Content-Type': 'application/json',
@@ -44,19 +44,25 @@ class Step7Summary extends StatelessWidget {
         );
 
         if (res.statusCode == 200 || res.statusCode == 201) {
+          // ✅ refresh user data so PlanUsageBanner updates
+          await context.read<UserProvider>().fetchUserData();
+          // (make sure UserProvider has this method calling backend + notifyListeners)
+
           onSubmitSuccess();
         } else {
           final err = res.body.isNotEmpty ? res.body : 'HTTP ${res.statusCode}';
-          // ignore: use_build_context_synchronously
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Submit failed: $err')),
-          );
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Submit failed: $err')),
+            );
+          }
         }
       } catch (e) {
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Network error: $e')),
-        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Network error: $e')),
+          );
+        }
       }
     }
 

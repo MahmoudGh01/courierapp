@@ -189,13 +189,13 @@ class _PickupStepState extends State<PickupStep> {
                   padding: 10,
                   text: '     ${locale.continueText}  ↓    ',
                   onPressed: () {
-                    final q = context.read<QuickRequestProvider>();
+                    final q = context.read<QuickRequestProvider>().quickRequest;
                     final valid = q.originAddress.isNotEmpty &&
                         q.originCity.isNotEmpty &&
                         q.originState.isNotEmpty &&
                         q.originPostalCode.isNotEmpty &&
-                        q.originLatitude != null &&
-                        q.originLongitude != null;
+                        q.originLatitude != 0.0 &&
+                        q.originLongitude != 0.0;
                     if (!valid) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('locale.pleaseEnterAllDetails')),

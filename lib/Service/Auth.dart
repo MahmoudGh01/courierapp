@@ -92,6 +92,11 @@ class AuthService extends GetxController {
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
+        final role = data['user']['role']?.toString() ?? '';
+        if (role != 'SHIPPER') {
+          showSnackBar(context, 'Please connect to Sheapit Delivery app.');
+          return; // prevent login continuation
+        }
         userProvider.setUser(data['user']);
         print(data['user']);
         final prefs = await SharedPreferences.getInstance();

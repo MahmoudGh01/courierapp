@@ -14,7 +14,7 @@ final ThemeData appTheme = ThemeData(
   primaryColorDark: kMainTextColor,
   hoverColor: kLightTextColor,
   cardColor: const Color(0xffeaeaea),
-  bottomAppBarTheme: BottomAppBarTheme(color: kMainColor),
+  bottomAppBarTheme: BottomAppBarThemeData(color: kMainColor),
   appBarTheme: AppBarTheme(
     color: kTransparentColor,
     elevation: 0.0,

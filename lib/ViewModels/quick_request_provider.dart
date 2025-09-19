@@ -1,33 +1,76 @@
+import 'package:courier_app/Models/quick_transport_request_model.dart';
+import 'package:courier_app/Service/deliveries_api.dart';
 import 'package:flutter/material.dart';
 
+import '../Models/transport_request_model.dart';
+
 enum ServiceType { RELOCATION }
+
 enum TransportRequestStatus { PUBLISHED }
 
 class QuickRequestProvider extends ChangeNotifier {
+  final QuickTransportRequestModel _quickRequest = QuickTransportRequestModel(
+      idRequest: 0,
+      serviceType: ServiceType.RELOCATION.name,
+      status: TransportRequestStatus.PUBLISHED.name,
+      originAddress: '',
+      originState: '',
+      originCity: '',
+      originPostalCode: '',
+      originLatitude: 0.0,
+      originLongitude: 0.0,
+      destinationAddress: '',
+      destinationState: '',
+      destinationCity: '',
+      destinationPostalCode: '',
+      destinationLatitude: 0.0,
+      destinationLongitude: 0.0,
+      pickUpDate: DateTime.now(),
+      description: '',
+      createdAt: DateTime.now());
   // Defaults required by backend
-  ServiceType serviceType = ServiceType.RELOCATION;
-  TransportRequestStatus status = TransportRequestStatus.PUBLISHED;
+  QuickTransportRequestModel get quickRequest => _quickRequest;
 
-  // Origin (required)
-  String originAddress = '';
-  String originState = '';
-  String originCity = '';
-  String originPostalCode = '';
-  double? originLatitude;
-  double? originLongitude;
+  List<QuickTransportRequestModel> _quickRequests = [];
+  List<TransportRequestModel> _transportRequests = [];
 
-  // Destination (required)
-  String destinationAddress = '';
-  String destinationState = '';
-  String destinationCity = '';
-  String destinationPostalCode = '';
-  double? destinationLatitude;
-  double? destinationLongitude;
+  List<QuickTransportRequestModel> get quickRequests => _quickRequests;
+  List<TransportRequestModel> get transportRequests => _transportRequests;
 
-  // Meta (required/optional)
-  DateTime? pickUpDate;        // required
-  DateTime? deliveryDate;      // optional
-  String description = '';     // required
+  bool _loadingQuick = false;
+  bool _loadingTransport = false;
+
+  bool get loadingQuick => _loadingQuick;
+  bool get loadingTransport => _loadingTransport;
+
+  Future<void> fetchQuickRequests(String id) async {
+    _loadingQuick = true;
+    notifyListeners();
+
+    try {
+
+      _quickRequests = await DeliveriesApi.fetchQuickRequests(id);
+    } catch (e) {
+      _quickRequests = [];
+    }
+
+    _loadingQuick = false;
+    notifyListeners();
+  }
+
+  Future<void> fetchTransportRequests(String id) async {
+    _loadingTransport = true;
+    notifyListeners();
+
+    try {
+      _transportRequests = await DeliveriesApi.fetchTransportRequests(id);
+    } catch (e) {
+      _transportRequests = [];
+    }
+
+    _loadingTransport = false;
+    notifyListeners();
+  }
 
   // ---- Update helpers ----
   void updateOrigin({
@@ -38,12 +81,12 @@ class QuickRequestProvider extends ChangeNotifier {
     double? lat,
     double? lng,
   }) {
-    if (address != null) originAddress = address;
-    if (state != null) originState = state;
-    if (city != null) originCity = city;
-    if (postalCode != null) originPostalCode = postalCode;
-    if (lat != null) originLatitude = lat;
-    if (lng != null) originLongitude = lng;
+    if (address != null) _quickRequest.originAddress = address;
+    if (state != null) _quickRequest.originState = state;
+    if (city != null) _quickRequest.originCity = city;
+    if (postalCode != null) _quickRequest.originPostalCode = postalCode;
+    if (lat != null) _quickRequest.originLatitude = lat;
+    if (lng != null) _quickRequest.originLongitude = lng;
     notifyListeners();
   }
 
@@ -55,12 +98,12 @@ class QuickRequestProvider extends ChangeNotifier {
     double? lat,
     double? lng,
   }) {
-    if (address != null) destinationAddress = address;
-    if (state != null) destinationState = state;
-    if (city != null) destinationCity = city;
-    if (postalCode != null) destinationPostalCode = postalCode;
-    if (lat != null) destinationLatitude = lat;
-    if (lng != null) destinationLongitude = lng;
+    if (address != null) _quickRequest.destinationAddress = address;
+    if (state != null) _quickRequest.destinationState = state;
+    if (city != null) _quickRequest.destinationCity = city;
+    if (postalCode != null) _quickRequest.destinationPostalCode = postalCode;
+    if (lat != null) _quickRequest.destinationLatitude = lat;
+    if (lng != null) _quickRequest.destinationLongitude = lng;
     notifyListeners();
   }
 
@@ -69,81 +112,57 @@ class QuickRequestProvider extends ChangeNotifier {
     DateTime? delivery,
     String? desc,
   }) {
-    if (pickup != null) pickUpDate = pickup;
-    if (delivery != null) deliveryDate = delivery;
-    if (desc != null) description = desc;
+    if (pickup != null) _quickRequest.pickUpDate = pickup;
+    if (delivery != null) _quickRequest.deliveryDate = delivery;
+    if (desc != null) _quickRequest.description = desc;
     notifyListeners();
   }
 
   // ---- Validation ----
   bool isStep1Valid() {
-    return originAddress.isNotEmpty &&
-        originState.isNotEmpty &&
-        originCity.isNotEmpty &&
-        originPostalCode.isNotEmpty &&
-        originLatitude != null &&
-        originLongitude != null;
+    return _quickRequest.originAddress.isNotEmpty &&
+        _quickRequest.originState.isNotEmpty &&
+        _quickRequest.originCity.isNotEmpty &&
+        _quickRequest.originPostalCode.isNotEmpty &&
+        _quickRequest.originLatitude != 0.0 &&
+        _quickRequest.originLongitude != 0.0;
   }
 
   bool isStep2Valid() {
-    return destinationAddress.isNotEmpty &&
-        destinationState.isNotEmpty &&
-        destinationCity.isNotEmpty &&
-        destinationPostalCode.isNotEmpty &&
-        destinationLatitude != null &&
-        destinationLongitude != null;
+    return _quickRequest.destinationAddress.isNotEmpty &&
+        _quickRequest.destinationState.isNotEmpty &&
+        _quickRequest.destinationCity.isNotEmpty &&
+        _quickRequest.destinationPostalCode.isNotEmpty &&
+        _quickRequest.destinationLatitude != 0.0 &&
+        _quickRequest.destinationLongitude != 0.0;
   }
 
   bool isStep3Valid() {
-    return pickUpDate != null && description.isNotEmpty;
-  }
-
-  Map<String, dynamic> toJson({required int userId}) {
-    return {
-      "serviceType": serviceType.name,
-      "status": status.name,
-      "originAddress": originAddress,
-      "originState": originState,
-      "originCity": originCity,
-      "originPostalCode": originPostalCode,
-      "originLatitude": originLatitude,
-      "originLongitude": originLongitude,
-      "destinationAddress": destinationAddress,
-      "destinationState": destinationState,
-      "destinationCity": destinationCity,
-      "destinationPostalCode": destinationPostalCode,
-      "destinationLatitude": destinationLatitude,
-      "destinationLongitude": destinationLongitude,
-      "pickUpDate": pickUpDate?.toIso8601String(),
-      "deliveryDate": deliveryDate?.toIso8601String(),
-      "description": description,
-      "user": {
-        "idUser": userId
-      }
-    };
+    return _quickRequest.pickUpDate != null &&
+        _quickRequest.description.isNotEmpty;
   }
 
   void reset() {
-    serviceType = ServiceType.RELOCATION;
-    status = TransportRequestStatus.PUBLISHED;
+    _quickRequest.serviceType = ServiceType.RELOCATION.name;
+    _quickRequest.status = TransportRequestStatus.PUBLISHED.name;
 
-    originAddress = '';
-    originState = '';
-    originCity = '';
-    originPostalCode = '';
-    originLatitude = null;
-    originLongitude = null;
+    _quickRequest.originAddress = '';
+    _quickRequest.originState = '';
+    _quickRequest.originCity = '';
+    _quickRequest.originPostalCode = '';
+    _quickRequest.originLatitude = 0.0;
+    _quickRequest.originLongitude = 0.0;
 
-    destinationAddress = '';
-    destinationState = '';
-    destinationCity = '';
-    destinationPostalCode = '';
-    destinationLatitude = null;
-    destinationLongitude = null;
+    _quickRequest.destinationAddress = '';
+    _quickRequest.destinationState = '';
+    _quickRequest.destinationCity = '';
+    _quickRequest.destinationPostalCode = '';
+    _quickRequest.destinationLatitude = 0.0;
+    _quickRequest.destinationLongitude = 0.0;
 
-    pickUpDate = null;
-    deliveryDate = null;
-    description = '';
+    _quickRequest.pickUpDate = DateTime.now();
+    _quickRequest.deliveryDate = null;
+    _quickRequest.description = '';
     notifyListeners();
   }
 }

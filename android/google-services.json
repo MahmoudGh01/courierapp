@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "370682676747",
+    "project_id": "sheapit-courierapp",
+    "storage_bucket": "sheapit-courierapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:370682676747:android:f0e03dc4c168c42fd5690e",
+        "android_client_info": {
+          "package_name": "com.sheapit.courier_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYNss3qsIvkTKQj8SARfx6NBbl7cRYnLU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

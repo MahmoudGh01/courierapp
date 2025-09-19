@@ -9,9 +9,9 @@ import '../utils/constants.dart';
 import '../utils/http_client.dart';
 
 class DeliveriesApi {
-  static Future<List<QuickTransportRequestModel>> fetchQuickRequests() async {
+  static Future<List<QuickTransportRequestModel>> fetchQuickRequests(String id) async {
 
-    final res = await HttpClient.get("QuickTransportRequest/retrieve-all-QuickTransportRequests");
+    final res = await HttpClient.get("QuickTransportRequest/retrieve-all-QuickTransportRequests/user/${id}");
 
     if (res.statusCode == 200) {
       final data = jsonDecode(res.body) as List;
@@ -20,8 +20,8 @@ class DeliveriesApi {
     return [];
   }
 
-  static Future<List<TransportRequestModel>> fetchTransportRequests() async {
-    final res = await HttpClient.get("TransportRequest/retrieve-all-TransportRequests");
+  static Future<List<TransportRequestModel>> fetchTransportRequests(String id) async {
+    final res = await HttpClient.get("TransportRequest/retrieve-all-TransportRequests/user/${id}");
 
 
     if (res.statusCode == 200) {

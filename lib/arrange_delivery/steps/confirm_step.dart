@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:courier_app/Models/quick_transport_request_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -17,7 +18,7 @@ class ConfirmStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final quick = context.watch<QuickRequestProvider>();
+    final quick = context.watch<QuickRequestProvider>().quickRequest;
     final user = context.watch<UserProvider>().user;
 
     return Container(
@@ -73,29 +74,52 @@ class ConfirmStep extends StatelessWidget {
     );
   }
 
-  Future<bool> _submitQuickRequest(BuildContext context, QuickRequestProvider quick, int userId) async {
+  Future<bool> _submitQuickRequest(
+      BuildContext context,
+      QuickTransportRequestModel quick,
+      int userId,
+      ) async {
     final prefs = await SharedPreferences.getInstance();
     var token = prefs.getString('token') ?? '';
 
     final payload = quick.toJson(userId: userId);
+    print(payload);
+
     var res = await http.post(
-      Uri.parse('${Constants.uri}QuickTransportRequest/add-QuickTransportRequest'),
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      Uri.parse('${Constants.uri}QuickTransportRequest/add-QuickTransportRequest/$userId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
       body: jsonEncode(payload),
     );
 
+    // 🔄 refresh token if expired
     if (res.statusCode == 403) {
       final refreshed = await context.read<UserProvider>().refreshToken();
       if (!refreshed) return false;
 
       token = prefs.getString('token') ?? '';
       res = await http.post(
-        Uri.parse('${Constants.uri}QuickTransportRequest/add-QuickTransportRequest'),
-        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+        Uri.parse('${Constants.uri}QuickTransportRequest/add-QuickTransportRequest/$userId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode(payload),
       );
     }
 
-    return res.statusCode == 200 || res.statusCode == 201;
+    final success = res.statusCode == 200 || res.statusCode == 201;
+
+    if (success) {
+      // ✅ après succès → reload user data
+      final userProvider = context.read<UserProvider>();
+      await userProvider.fetchUserData(); // ta méthode qui recharge le user (QuickRequests inclus)
+      userProvider.notifyListeners();           // force rebuild si nécessaire
+    }
+
+    return success;
   }
+
 }

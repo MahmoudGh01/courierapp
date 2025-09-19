@@ -2,58 +2,56 @@
 import 'package:courier_app/Models/offer_model.dart';
 
 class QuickTransportRequestModel {
-  final int idRequest;
-  final String serviceType;
-  final String status;
+  int idRequest;
+  String serviceType;
+  String status;
 
-  final String originAddress;
-  final String originState;
-  final String originCity;
-  final String originPostalCode;
-  final double originLatitude;
-  final double originLongitude;
+  String originAddress;
+  String originState;
+  String originCity;
+  String originPostalCode;
+  double originLatitude;
+  double originLongitude;
 
-  final String destinationAddress;
-  final String destinationState;
-  final String destinationCity;
-  final String destinationPostalCode;
-  final double destinationLatitude;
-  final double destinationLongitude;
+  String destinationAddress;
+  String destinationState;
+  String destinationCity;
+  String destinationPostalCode;
+  double destinationLatitude;
+  double destinationLongitude;
 
-  final DateTime pickUpDate;
-  final DateTime? deliveryDate;
-  final String description;
-  final List<OfferModel>? offers;
-  final int? userId;
+  DateTime pickUpDate;
+  DateTime? deliveryDate;
+  String description;
+  List<OfferModel>? offers;
+  int? userId;
 
-  final DateTime createdAt;
-  final DateTime? updatedAt;
+  DateTime createdAt;
+  DateTime? updatedAt;
 
-  QuickTransportRequestModel({
-    required this.idRequest,
-    required this.serviceType,
-    required this.status,
-    required this.originAddress,
-    required this.originState,
-    required this.originCity,
-    required this.originPostalCode,
-    required this.originLatitude,
-    required this.originLongitude,
-    required this.destinationAddress,
-    required this.destinationState,
-    required this.destinationCity,
-    required this.destinationPostalCode,
-    required this.destinationLatitude,
-    required this.destinationLongitude,
-    required this.pickUpDate,
-    this.deliveryDate,
-    required this.description,
-    this.userId,
-    required this.createdAt,
-    this.updatedAt,
-    this.offers
-
-  });
+  QuickTransportRequestModel(
+      {required this.idRequest,
+      required this.serviceType,
+      required this.status,
+      required this.originAddress,
+      required this.originState,
+      required this.originCity,
+      required this.originPostalCode,
+      required this.originLatitude,
+      required this.originLongitude,
+      required this.destinationAddress,
+      required this.destinationState,
+      required this.destinationCity,
+      required this.destinationPostalCode,
+      required this.destinationLatitude,
+      required this.destinationLongitude,
+      required this.pickUpDate,
+      this.deliveryDate,
+      required this.description,
+      this.userId,
+      required this.createdAt,
+      this.updatedAt,
+      this.offers});
 
   factory QuickTransportRequestModel.fromJson(Map<String, dynamic> j) {
     return QuickTransportRequestModel(
@@ -73,7 +71,9 @@ class QuickTransportRequestModel {
       destinationLatitude: (j['destinationLatitude'] ?? 0).toDouble(),
       destinationLongitude: (j['destinationLongitude'] ?? 0).toDouble(),
       pickUpDate: DateTime.parse(j['pickUpDate']),
-      deliveryDate: j['deliveryDate'] != null ? DateTime.tryParse(j['deliveryDate']) : null,
+      deliveryDate: j['deliveryDate'] != null
+          ? DateTime.tryParse(j['deliveryDate'])
+          : null,
       description: j['description'] ?? '',
       offers: j['offers'] != null
           ? (j['offers'] as List<dynamic>)
@@ -82,8 +82,31 @@ class QuickTransportRequestModel {
           : null,
       userId: j['user']?['idUser'],
       createdAt: DateTime.parse(j['createdAt']),
-      updatedAt: j['updatedAt'] != null ? DateTime.tryParse(j['updatedAt']) : null,
+      updatedAt:
+          j['updatedAt'] != null ? DateTime.tryParse(j['updatedAt']) : null,
     );
   }
 
+  Map<String, dynamic> toJson({required int userId}) {
+    return {
+      "serviceType": this.serviceType,
+      "status": this.status,
+      "originAddress": this.originAddress,
+      "originState": this.originState,
+      "originCity": this.originCity,
+      "originPostalCode": this.originPostalCode,
+      "originLatitude": this.originLatitude,
+      "originLongitude": this.originLongitude,
+      "destinationAddress": this.destinationAddress,
+      "destinationState": this.destinationState,
+      "destinationCity": this.destinationCity,
+      "destinationPostalCode": this.destinationPostalCode,
+      "destinationLatitude": this.destinationLatitude,
+      "destinationLongitude": this.destinationLongitude,
+      "pickUpDate": this.pickUpDate?.toIso8601String(),
+      "deliveryDate": this.deliveryDate?.toIso8601String(),
+      "description": this.description,
+      "user": {"idUser": userId}
+    };
+  }
 }

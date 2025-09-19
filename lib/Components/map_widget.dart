@@ -1,7 +1,6 @@
 // lib/Components/map_widget.dart
 import 'dart:async';
 
-import 'package:courier_app/Models/quick_transport_request_model.dart';
 import 'package:courier_app/OrderMapBloc/order_map_bloc.dart';
 import 'package:courier_app/OrderMapBloc/order_map_state.dart';
 import 'package:courier_app/Theme/style.dart';
@@ -15,23 +14,27 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 class MapWidget extends StatelessWidget {
   final Widget? child;
   final bool addMarkers;
-  final QuickTransportRequestModel? request;
+  final LatLng? origin;       // ✅ direct pickup
+  final LatLng? destination;  // ✅ direct delivery
 
   const MapWidget({
     super.key,
     this.child,
     this.addMarkers = false,
-    this.request,
+    this.origin,
+    this.destination,
   });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider<OrderMapBloc>(
-      create: (context) => OrderMapBloc()..loadMap(),
+      create: (context) => OrderMapBloc()
+        ..loadMap(origin: origin!, destination: destination!),   // ✅ load polyline + markers
       child: MapWidgetBody(
         addMarkers: addMarkers,
         child: child,
-        request: request,                 // ✅ pass it down
+        origin: origin,
+        destination: destination,
       ),
     );
   }
@@ -40,13 +43,15 @@ class MapWidget extends StatelessWidget {
 class MapWidgetBody extends StatefulWidget {
   final bool addMarkers;
   final Widget? child;
-  final QuickTransportRequestModel? request;
+  final LatLng? origin;
+  final LatLng? destination;
 
   const MapWidgetBody({
     super.key,
     this.child,
     required this.addMarkers,
-    this.request,
+    this.origin,
+    this.destination,
   });
 
   @override
@@ -57,7 +62,7 @@ class _MapWidgetBodyState extends State<MapWidgetBody> {
   final Completer<GoogleMapController> _mapController = Completer();
   GoogleMapController? _gm;
   final Set<Marker> _markers = {};
-  bool _seeded = false;                      // ✅ prevent double-adding
+  bool _seeded = false; // ✅ prevent double-adding
 
   @override
   void initState() {
@@ -84,10 +89,13 @@ class _MapWidgetBodyState extends State<MapWidgetBody> {
                   _gm = c;
                   _gm!.setMapStyle(mapStyle);
 
-                  // ✅ Seed markers/camera once when we have a request
-                  if (!_seeded && widget.addMarkers && widget.request != null) {
+                  // ✅ Seed markers/camera once
+                  if (!_seeded &&
+                      widget.addMarkers &&
+                      widget.origin != null &&
+                      widget.destination != null) {
                     _seeded = true;
-                    _seedMarkersAndCamera(widget.request!);
+                    _seedMarkersAndCamera(widget.origin!, widget.destination!);
                   }
                 },
               );
@@ -100,37 +108,23 @@ class _MapWidgetBodyState extends State<MapWidgetBody> {
   }
 
   // ✅ Add origin/destination markers and fit camera to bounds
-  Future<void> _seedMarkersAndCamera(QuickTransportRequestModel req) async {
-    final double? oLat = req.originLatitude;
-    final double? oLng = req.originLongitude;
-    final double? dLat = req.destinationLatitude;
-    final double? dLng = req.destinationLongitude;
-
-    // guard if any missing
-    if (oLat == null || oLng == null) return;
-    if (dLat == null || dLng == null) return;
-
-    final origin = LatLng(oLat, oLng);
-    final dest   = LatLng(dLat, dLng);
-    print("$origin$dest");
-
+  Future<void> _seedMarkersAndCamera(LatLng origin, LatLng dest) async {
     setState(() {
       _markers
         ..add(Marker(
           markerId: const MarkerId('origin'),
           position: origin,
-          icon: (markerss.isNotEmpty ? markerss.first : BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue)),
+          icon: ( BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue)),
           infoWindow: const InfoWindow(title: 'Pickup'),
         ))
         ..add(Marker(
           markerId: const MarkerId('destination'),
           position: dest,
-          icon: (markerss.length > 1 ? markerss[1] : BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed)),
+          icon: (BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed)),
           infoWindow: const InfoWindow(title: 'Drop-off'),
         ));
     });
 
-    // Fit both markers
     final bounds = _boundsFromLatLngs([origin, dest]);
     await _fitBounds(bounds, padding: 60);
   }
@@ -144,7 +138,7 @@ class _MapWidgetBodyState extends State<MapWidgetBody> {
         y0 = y1 = latLng.longitude;
       } else {
         if (latLng.latitude > x1!) x1 = latLng.latitude;
-        if (latLng.latitude < x0)  x0 = latLng.latitude;
+        if (latLng.latitude < x0) x0 = latLng.latitude;
         if (latLng.longitude > y1!) y1 = latLng.longitude;
         if (latLng.longitude < y0!) y0 = latLng.longitude;
       }
@@ -162,7 +156,6 @@ class _MapWidgetBodyState extends State<MapWidgetBody> {
       final update = CameraUpdate.newLatLngBounds(b, padding.toDouble());
       await _gm!.animateCamera(update);
     } catch (e) {
-      // For some devices we need a small delay to apply bounds
       await Future.delayed(const Duration(milliseconds: 100));
       try {
         await _gm!.animateCamera(CameraUpdate.newLatLngBounds(b, padding.toDouble()));
