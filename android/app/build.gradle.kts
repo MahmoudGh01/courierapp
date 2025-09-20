@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.sheapit.courier_app"
-    compileSdk = 36
+    compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
