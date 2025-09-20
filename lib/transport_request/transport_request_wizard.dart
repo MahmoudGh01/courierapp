@@ -1,3 +1,5 @@
+import 'package:courier_app/Models/enums.dart';
+import 'package:courier_app/transport_request/steps/step3_freight.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../ViewModels/transport_request_provider.dart';
@@ -41,7 +43,11 @@ class _TransportRequestWizardState extends State<TransportRequestWizard> {
       Step2ServiceDetails(onNext: () {
         if (provider.validateStep2()) _next();
       }, onBack: _prev),
-      Step3Merchandise(onNext: () {
+      provider.dto.serviceType == ServiceType.FREIGHT_TRANSPORTATION.name
+          ? Step3Freight(onNext: () {
+        if (provider.validateStep3Freight()) _next();
+      }, onBack: _prev)
+          : Step3Merchandise(onNext: () {
         if (provider.validateStep3()) _next();
       }, onBack: _prev),
       Step4Vehicle(onNext: () {

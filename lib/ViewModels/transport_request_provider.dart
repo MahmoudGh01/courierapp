@@ -1,3 +1,4 @@
+import 'package:courier_app/Models/enums.dart';
 import 'package:flutter/foundation.dart';
 import '../Models/merchandise_items.dart';
 import '../Models/transport_request_model.dart';
@@ -30,6 +31,7 @@ class TransportRequestProvider extends ChangeNotifier {
   );
 
   TransportRequestModel get dto => _dto;
+
 // ---------------------------------------------------------
   // STEP 3 — Merchandise: CRUD for each item type
   // ---------------------------------------------------------
@@ -216,6 +218,106 @@ class TransportRequestProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setMerchField({
+    // --- Household Counters ---
+    int? airConditioners,
+    int? deskChairs,
+    int? chairs,
+    int? washingMachines,
+    int? dishWashingMachines,
+    int? refrigerators,
+    int? televisions,
+    int? microwaves,
+    int? ovens,
+    int? singlePlaceBed,
+    int? doublePlaceBed,
+    int? masterBedrooms,
+    int? dressingTables,
+
+    // --- Freight (FCL) ---
+    int? standard20ft,
+    int? standard40ft,
+    int? highCube40ft,
+    String? otherContainers,
+
+    // --- Freight (LCL) ---
+    int? palletCount,
+    int? boxCount,
+    int? objectCount,
+
+    // --- Shared Freight fields ---
+    double? totalWeight,
+    double? totalVolume,
+    String? description,
+    bool? isSpecialHandlingRequired,
+    bool? isAdditionalProtectionRequired,
+    bool? isVehicleWithTailElevatorRequired,
+    String? otherRequirements,
+    String? merchandiseType,
+    String? loadingType,
+  }) {
+    if (_dto.merchandise != null) {
+      _dto.merchandise = _dto.merchandise!.copyWith(
+        merchandiseType: merchandiseType ?? _dto.merchandise!.merchandiseType,
+        loadingType: loadingType ?? _dto.merchandise!.loadingType,
+        // Household
+        airConditioners: airConditioners ?? _dto.merchandise!.airConditioners,
+        deskChairs: deskChairs ?? _dto.merchandise!.deskChairs,
+        chairs: chairs ?? _dto.merchandise!.chairs,
+        washingMachines: washingMachines ?? _dto.merchandise!.washingMachines,
+        dishWashingMachines: dishWashingMachines ??
+            _dto.merchandise!.dishWashingMachines,
+        refrigerators: refrigerators ?? _dto.merchandise!.refrigerators,
+        televisions: televisions ?? _dto.merchandise!.televisions,
+        microwaves: microwaves ?? _dto.merchandise!.microwaves,
+        ovens: ovens ?? _dto.merchandise!.ovens,
+        singlePlaceBed: singlePlaceBed ?? _dto.merchandise!.singlePlaceBed,
+        doublePlaceBed: doublePlaceBed ?? _dto.merchandise!.doublePlaceBed,
+        masterBedrooms: masterBedrooms ?? _dto.merchandise!.masterBedrooms,
+        dressingTables: dressingTables ?? _dto.merchandise!.dressingTables,
+
+        // Freight (FCL)
+        standard20FeetContainersNumber: standard20ft ??
+            _dto.merchandise!.standard20FeetContainersNumber,
+        standard40FeetContainersNumber: standard40ft ??
+            _dto.merchandise!.standard40FeetContainersNumber,
+        highCube40FeetContainersNumber: highCube40ft ??
+            _dto.merchandise!.highCube40FeetContainersNumber,
+
+        // Freight (LCL)
+        pallets: List.generate(
+            palletCount ?? _dto.merchandise!.pallets.length, (index) =>
+            PalletModel(idPallet: 0,
+                length: 0,
+                width: 0,
+                height: 0,
+                weight: 0,
+                type: 'STANDARD')),
+        boxes: List.generate(
+            boxCount ?? _dto.merchandise!.boxes.length, (index) =>
+            BoxModel(idBox: 0,
+                length: 0,
+                width: 0,
+                height: 0,
+                weight: 0)),
+
+        // Shared Freight
+        totalWeight: totalWeight ?? _dto.merchandise!.totalWeight,
+        totalVolume: totalVolume ?? _dto.merchandise!.totalVolume,
+        description: description ?? _dto.merchandise!.description,
+        isSpecialHandlingRequired: isSpecialHandlingRequired ??
+            _dto.merchandise!.isSpecialHandlingRequired,
+        isAdditionalProtectionRequired: isAdditionalProtectionRequired ??
+            _dto.merchandise!.isAdditionalProtectionRequired,
+        isVehicleWithTailElevatorRequired: isVehicleWithTailElevatorRequired ??
+            _dto.merchandise!.isVehicleWithTailElevatorRequired,
+        other: otherRequirements ?? _dto.merchandise!.other,
+      );
+      notifyListeners();
+    }
+  }
+
+
   // ---- Step 2 (Origin)
   void setOrigin({
     String? address,
@@ -236,7 +338,7 @@ class TransportRequestProvider extends ChangeNotifier {
       originLongitude: lng ?? _dto.originLongitude,
       departureFloor: floor ?? _dto.departureFloor,
       isElevatorAvailableForDeparture:
-          elevator ?? _dto.isElevatorAvailableForDeparture,
+      elevator ?? _dto.isElevatorAvailableForDeparture,
     );
     notifyListeners();
   }
@@ -261,7 +363,7 @@ class TransportRequestProvider extends ChangeNotifier {
       destinationLongitude: lng ?? _dto.destinationLongitude,
       arrivalFloor: floor ?? _dto.arrivalFloor,
       isElevatorAvailableForArrival:
-          elevator ?? _dto.isElevatorAvailableForArrival,
+      elevator ?? _dto.isElevatorAvailableForArrival,
     );
     notifyListeners();
   }
@@ -284,11 +386,11 @@ class TransportRequestProvider extends ChangeNotifier {
       deliveryTime: deliveryTime ?? _dto.deliveryTime,
       pickUpFlexibilityInDays: pickUpFlexDays ?? _dto.pickUpFlexibilityInDays,
       pickUpFlexibilityInHours:
-          pickUpFlexHours ?? _dto.pickUpFlexibilityInHours,
+      pickUpFlexHours ?? _dto.pickUpFlexibilityInHours,
       deliveryFlexibilityInDays:
-          deliveryFlexDays ?? _dto.deliveryFlexibilityInDays,
+      deliveryFlexDays ?? _dto.deliveryFlexibilityInDays,
       deliveryFlexibilityInHours:
-          deliveryFlexHours ?? _dto.deliveryFlexibilityInHours,
+      deliveryFlexHours ?? _dto.deliveryFlexibilityInHours,
     );
     notifyListeners();
   }
@@ -309,12 +411,11 @@ class TransportRequestProvider extends ChangeNotifier {
   }
 
   // ---- Step 4 (Vehicle)
-  void setVehicle(
-      {String? vehicleType,
-      String? accessType,
-      String? loadingCapacity,
-      double? maxW,
-      double? maxH}) {
+  void setVehicle({String? vehicleType,
+    String? accessType,
+    String? loadingCapacity,
+    double? maxW,
+    double? maxH}) {
     _dto = _dto.copyWith(
       vehicleType: vehicleType ?? _dto.vehicleType,
       accessType: accessType ?? _dto.accessType,
@@ -362,23 +463,27 @@ class TransportRequestProvider extends ChangeNotifier {
 
   // ---- Validation
   bool validateStep1() => true;
+
   bool validateStep2() =>
       _dto.originAddress.isNotEmpty &&
-      _dto.originCity.isNotEmpty &&
-      _dto.originState.isNotEmpty &&
-      _dto.originPostalCode.isNotEmpty &&
-      _dto.originLatitude != null &&
-      _dto.originLongitude != null &&
-      _dto.destinationAddress.isNotEmpty &&
-      _dto.destinationCity.isNotEmpty &&
-      _dto.destinationState.isNotEmpty &&
-      _dto.destinationPostalCode.isNotEmpty &&
-      _dto.destinationLatitude != null &&
-      _dto.destinationLongitude != null;
+          _dto.originCity.isNotEmpty &&
+          _dto.originState.isNotEmpty &&
+          _dto.originPostalCode.isNotEmpty &&
+          _dto.originLatitude != null &&
+          _dto.originLongitude != null &&
+          _dto.destinationAddress.isNotEmpty &&
+          _dto.destinationCity.isNotEmpty &&
+          _dto.destinationState.isNotEmpty &&
+          _dto.destinationPostalCode.isNotEmpty &&
+          _dto.destinationLatitude != null &&
+          _dto.destinationLongitude != null;
 
   bool validateStep3() => _dto.merchandise != null;
+
   bool validateStep4() => true;
+
   bool validateStep5() => true;
+
   bool validateStep6() => true;
 
   void reset() {
@@ -408,4 +513,39 @@ class TransportRequestProvider extends ChangeNotifier {
     );
     notifyListeners();
   }
+
+  bool validateStep3Freight() {
+    final m = _dto.merchandise;
+
+    // 🚨 Safety check
+    if (m == null) return false;
+
+    // --- Basic required fields ---
+    if (m.merchandiseType == null || m.merchandiseType!.isEmpty) return false;
+    if (m.loadingType == null || m.loadingType!.isEmpty) return false;
+
+    // --- FCL (Full Container Load) ---
+    if (m.loadingType == LoadingType.FULL_CONTAINER.name) {
+      final totalContainers = (m.standard20FeetContainersNumber ?? 0) +
+          (m.standard40FeetContainersNumber ?? 0) +
+          (m.highCube40FeetContainersNumber ?? 0);
+      if (totalContainers == 0) return false; // must have at least 1 container
+      if (m.totalWeight == null || m.totalWeight! <= 0) return false;
+      // totalVolume optional
+    }
+
+    // --- LCL (Partial Load) ---
+    if (m.loadingType == LoadingType.PARTIAL.name) {
+      final totalItems =
+          (m.pallets.length ?? 0) + (m.boxes.length ?? 0);
+
+      if (totalItems == 0) return false; // must have at least 1 item
+      if (m.totalWeight == null || m.totalWeight! <= 0) return false;
+      // totalVolume optional
+    }
+
+    // --- If all checks passed ---
+    return true;
+  }
+
 }

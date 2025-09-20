@@ -59,7 +59,7 @@ class _Step2ServiceDetailsState extends State<Step2ServiceDetails> {
 
   // Dismantling
   bool _needDismantle = false;
-  DismantlingType? _dismantleType = DismantlingType.NONE;
+  DismantlingType? _dismantleType;
   final _pieces = TextEditingController(text: '0');
 
   // Which side we are editing on the SAME map (origin/destination)
@@ -450,7 +450,10 @@ class _Step2ServiceDetailsState extends State<Step2ServiceDetails> {
                         context: context,
                         label: 'Pick-up Time',
                         value: _pickTime,
-                        onPicked: (t) => setState(() => _pickTime = t),
+                        onPicked: (t) => context
+                            .read<TransportRequestProvider>()
+                            .setScheduling(pickUpTime: DateTime(
+                                0, 0, 0, t.hour, t.minute).toString()),
                         use24h: true,
                         minuteStep: 5,
                       )),
@@ -460,7 +463,10 @@ class _Step2ServiceDetailsState extends State<Step2ServiceDetails> {
                         context: context,
                         label: 'Delivery Time',
                         value: _delivTime,
-                        onPicked: (t) => setState(() => _delivTime = t),
+                        onPicked: (t) => context
+                            .read<TransportRequestProvider>()
+                            .setScheduling(deliveryTime: DateTime(
+                            0, 0, 0, t.hour, t.minute).toString()),
                         use24h: false,
                         minuteStep: 15,
                       )),
@@ -543,27 +549,27 @@ class _Step2ServiceDetailsState extends State<Step2ServiceDetails> {
                       children: [
                         ChoiceChip(
                           label: const Text('All items'),
-                          selected: _dismantleType == DismantlingType.ALL_ITEMS,
+                          selected: _dismantleType == DismantlingType.ALL,
                           onSelected: (_) {
                             setState(() =>
-                                _dismantleType = DismantlingType.ALL_ITEMS);
+                                _dismantleType = DismantlingType.ALL);
                             context
                                 .read<TransportRequestProvider>()
                                 .setDismantling(
-                                    type: _dismantleType.toString());
+                                    type: _dismantleType?.name);
                           },
                         ),
                         ChoiceChip(
                           label: const Text('Only certain items'),
                           selected:
-                              _dismantleType == DismantlingType.SOME_ITEMS,
+                              _dismantleType == DismantlingType.PARTIAL,
                           onSelected: (_) {
                             setState(() =>
-                                _dismantleType = DismantlingType.SOME_ITEMS);
+                                _dismantleType = DismantlingType.PARTIAL);
                             context
                                 .read<TransportRequestProvider>()
                                 .setDismantling(
-                                    type: _dismantleType.toString());
+                                    type: _dismantleType?.name);
                           },
                         ),
                       ],

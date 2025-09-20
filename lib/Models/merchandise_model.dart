@@ -186,6 +186,94 @@ class MerchandiseModel {
         "doublePlaceBed": doublePlaceBed,
         "masterBedrooms": masterBedrooms,
         "dressingTables": dressingTables,
-
       };
+
+  MerchandiseModel copyWith({
+    int? idMerchandise,
+    String? merchandiseType,
+    String? description,
+    String? loadingType,
+    double? totalWeight,
+    double? totalVolume,
+
+    // Containers
+    int? standard20FeetContainersNumber,
+    int? standard40FeetContainersNumber,
+    int? highCube40FeetContainersNumber,
+
+    // Flags
+    bool? isSpecialHandlingRequired,
+    bool? isAdditionalProtectionRequired,
+    bool? isVehicleWithTailElevatorRequired,
+    String? other,
+
+    // Nested items
+    List<DeskModel>? desks,
+    List<CabinetModel>? cabinets,
+    List<CardboardModel>? cardboards,
+    List<BoxModel>? boxes,
+    List<PalletModel>? pallets,
+    List<WardrobeModel>? wardrobes,
+    List<SofaModel>? sofas,
+    List<MattressModel>? mattresses,
+    List<FurnitureModel>? otherFurniture,
+
+    // Furniture counts
+    int? airConditioners,
+    int? deskChairs,
+    int? chairs,
+    int? washingMachines,
+    int? dishWashingMachines,
+    int? refrigerators,
+    int? televisions,
+    int? microwaves,
+    int? ovens,
+    int? singlePlaceBed,
+    int? doublePlaceBed,
+    int? masterBedrooms,
+    int? dressingTables,
+
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return MerchandiseModel(
+      idMerchandise: idMerchandise ?? this.idMerchandise,
+      merchandiseType: merchandiseType ?? this.merchandiseType,
+      description: description ?? this.description,
+      loadingType: loadingType ?? this.loadingType,
+      totalWeight: totalWeight ?? this.totalWeight,
+      totalVolume: totalVolume ?? this.totalVolume,
+      standard20FeetContainersNumber: standard20FeetContainersNumber ?? this.standard20FeetContainersNumber,
+      standard40FeetContainersNumber: standard40FeetContainersNumber ?? this.standard40FeetContainersNumber,
+      highCube40FeetContainersNumber: highCube40FeetContainersNumber ?? this.highCube40FeetContainersNumber,
+      isSpecialHandlingRequired: isSpecialHandlingRequired ?? this.isSpecialHandlingRequired,
+      isAdditionalProtectionRequired: isAdditionalProtectionRequired ?? this.isAdditionalProtectionRequired,
+      isVehicleWithTailElevatorRequired: isVehicleWithTailElevatorRequired ?? this.isVehicleWithTailElevatorRequired,
+      other: other ?? this.other,
+      desks: desks ?? this.desks,
+      cabinets: cabinets ?? this.cabinets,
+      cardboards: cardboards ?? this.cardboards,
+      boxes: boxes ?? this.boxes,
+      pallets: pallets ?? this.pallets,
+      wardrobes: wardrobes ?? this.wardrobes,
+      sofas: sofas ?? this.sofas,
+      mattresses: mattresses ?? this.mattresses,
+      otherFurniture: otherFurniture ?? this.otherFurniture,
+      airConditioners: airConditioners ?? this.airConditioners,
+      deskChairs: deskChairs ?? this.deskChairs,
+      chairs: chairs ?? this.chairs,
+      washingMachines: washingMachines ?? this.washingMachines,
+      dishWashingMachines: dishWashingMachines ?? this.dishWashingMachines,
+      refrigerators: refrigerators ?? this.refrigerators,
+      televisions: televisions ?? this.televisions,
+      microwaves: microwaves ?? this.microwaves,
+      ovens: ovens ?? this.ovens,
+      singlePlaceBed: singlePlaceBed ?? this.singlePlaceBed,
+      doublePlaceBed: doublePlaceBed ?? this.doublePlaceBed,
+      masterBedrooms: masterBedrooms ?? this.masterBedrooms,
+      dressingTables: dressingTables ?? this.dressingTables,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }

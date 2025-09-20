@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:courier_app/Models/enums.dart';
+import 'package:courier_app/utils/http_client.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -34,13 +36,8 @@ class Step7Summary extends StatelessWidget {
       final token   = prefs.getString('token') ?? '';
 
       try {
-        var res = await http.post(
-          Uri.parse('${Constants.uri}TransportRequest/add-TransportRequest'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
-          body: jsonEncode(payload),
+        var res = await HttpClient.post(
+          "TransportRequest/add-TransportRequest", payload,
         );
 
         if (res.statusCode == 200 || res.statusCode == 201) {
@@ -250,21 +247,65 @@ class Step7Summary extends StatelessWidget {
               ),
 
               // Merchandise
-              if (p.dto.merchandise != null) _sectionCard(
-                title: 'Merchandise',
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _kv('Type', p.dto.merchandise!.merchandiseType),
-                    _kv('Description', p.dto.merchandise!.description),
-                    _kv('Total Weight', '${p.dto.merchandise!.totalWeight ?? 0} kg'),
-                    _kv('Total Volume', '${p.dto.merchandise!.totalVolume ?? 0} m³'),
-                    const SizedBox(height: 8),
-                    Text('Items', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-                    _itemsTable(p.dto.merchandise!),
-                  ],
+              // inside Step7Summary build → replace just the Merchandise section:
+
+// Merchandise
+              if (p.dto.merchandise != null)
+                _sectionCard(
+                  title: 'Merchandise',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _kv('Type', p.dto.merchandise!.merchandiseType),
+                      _kv('Description', p.dto.merchandise!.description),
+                      _kv('Total Weight', '${p.dto.merchandise!.totalWeight ?? 0} kg'),
+                      _kv('Total Volume', '${p.dto.merchandise!.totalVolume ?? 0} m³'),
+                      const SizedBox(height: 8),
+
+                      // 🔽 Household: keep items table
+                      if (p.dto.serviceType == ServiceType.RELOCATION.name)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Items',
+                                style: theme.textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w700)),
+                            _itemsTable(p.dto.merchandise!),
+                          ],
+                        ),
+
+                      // 🔽 Freight (Full or Partial): show chips with counters
+                      if (p.dto.serviceType == ServiceType.FREIGHT_TRANSPORTATION.name)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Freight Items',
+                                style: theme.textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w700)),
+                            const SizedBox(height: 6),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                if ((p.dto.merchandise!.standard20FeetContainersNumber ?? 0) > 0)
+                                  _pill("20ft Containers: ${p.dto.merchandise!.standard20FeetContainersNumber}"),
+                                if ((p.dto.merchandise!.standard40FeetContainersNumber ?? 0) > 0)
+                                  _pill("40ft Containers: ${p.dto.merchandise!.standard40FeetContainersNumber}"),
+                                if ((p.dto.merchandise!.highCube40FeetContainersNumber ?? 0) > 0)
+                                  _pill("HC 40ft Containers: ${p.dto.merchandise!.highCube40FeetContainersNumber}"),
+                                if ((p.dto.merchandise!.pallets.length ?? 0) > 0)
+                                  _pill("Pallets: ${p.dto.merchandise!.pallets.length}"),
+                                if ((p.dto.merchandise!.boxes.length ?? 0) > 0)
+                                  _pill("Boxes: ${p.dto.merchandise!.boxes.length}"),
+
+                              ],
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
                 ),
-              ),
+
 
               // Vehicle
               _sectionCard(

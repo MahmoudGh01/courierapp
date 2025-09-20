@@ -7,22 +7,43 @@ import 'package:provider/provider.dart';
 import '../../Service/upload_service.dart';
 import '../../Theme/colors.dart';
 import '../../ViewModels/transport_request_provider.dart';
-
-class Step6Additional extends StatelessWidget {
+class Step6Additional extends StatefulWidget {
   final VoidCallback onNext;
   final VoidCallback onBack;
   const Step6Additional({super.key, required this.onNext, required this.onBack});
+
+  @override
+  State<Step6Additional> createState() => _Step6AdditionalState();
+}
+
+class _Step6AdditionalState extends State<Step6Additional> {
+  late TextEditingController txt;
+
+  @override
+  void initState() {
+    super.initState();
+    final prov = context.read<TransportRequestProvider>();
+    txt = TextEditingController(text: prov.dto.additionalInstructions ?? '');
+
+    // Keep provider in sync
+    txt.addListener(() {
+      prov.setAdditionalInstructions(txt.text);
+    });
+  }
+
+  @override
+  void dispose() {
+    txt.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final p     = context.watch<TransportRequestProvider>();
     final theme = Theme.of(context);
 
-    // Controller reconstruit à chaque build (OK car on pousse via onChanged)
-    final txt = TextEditingController(text: p.dto.additionalInstructions ?? '');
-
     return Scaffold(
-      backgroundColor: kWhiteColor, // ✅ fond clair
+      backgroundColor: kWhiteColor,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (ctx, constraints) {
@@ -35,14 +56,13 @@ class Step6Additional extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
 
-                      // ---- Titre ----
                       Text(
                         'Step 6 of 8 — Additional Information',
                         style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 12),
 
-                      // ---- Zone Upload (grand conteneur + bouton centré) ----
+                      // ---- Upload ----
                       Text('Documents (PDF, JPG, PNG ≤ 4MB)',
                           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                       const SizedBox(height: 8),
@@ -66,43 +86,41 @@ class Step6Additional extends StatelessWidget {
                           child: ElevatedButton.icon(
                             icon: const Icon(Icons.upload_file),
                             label: const Text('Click to upload or drag & drop'),
-                              onPressed: () async {
-                                final res = await FilePicker.platform.pickFiles(
-                                  allowMultiple: true,
-                                  type: FileType.custom,
-                                  allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-                                );
+                            onPressed: () async {
+                              final res = await FilePicker.platform.pickFiles(
+                                allowMultiple: true,
+                                type: FileType.custom,
+                                allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+                              );
 
-                                if (res != null) {
-                                  for (final f in res.files) {
-                                    if (f.path != null) {
-                                      final file = File(f.path!);
-                                      if (file.lengthSync() <= 4 * 1024 * 1024) {
-                                        try {
-                                          final url = await UploadService.uploadFile(file);
-                                          if (url != null && context.mounted) {
-                                            context.read<TransportRequestProvider>().addDocumentPath(url); // now stores cloud URL
-                                          }
-                                        } catch (e) {
-                                          if (context.mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text("Upload failed: $e")),
-                                            );
-                                          }
+                              if (res != null) {
+                                for (final f in res.files) {
+                                  if (f.path != null) {
+                                    final file = File(f.path!);
+                                    if (file.lengthSync() <= 4 * 1024 * 1024) {
+                                      try {
+                                        final url = await UploadService.uploadFile(file);
+                                        if (url != null && context.mounted) {
+                                          context.read<TransportRequestProvider>().addDocumentPath(url);
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text("Upload failed: $e")),
+                                          );
                                         }
                                       }
                                     }
                                   }
                                 }
                               }
-
+                            },
                           ),
                         ),
                       ),
 
                       const SizedBox(height: 12),
 
-                      // ---- Liste des documents sélectionnés ----
                       if (p.dto.documentPaths!.isNotEmpty) ...[
                         Text('Attached Documents', style: theme.textTheme.titleMedium),
                         const SizedBox(height: 6),
@@ -117,15 +135,10 @@ class Step6Additional extends StatelessWidget {
                               margin: const EdgeInsets.symmetric(vertical: 4),
                               child: ListTile(
                                 leading: const Icon(Icons.description_outlined),
-                                title: Text(
-                                  path,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                                title: Text(path, maxLines: 1, overflow: TextOverflow.ellipsis),
                                 trailing: IconButton(
                                   icon: const Icon(Icons.delete_outline),
-                                  onPressed: () =>
-                                      context.read<TransportRequestProvider>().removeDocumentPath(i),
+                                  onPressed: () => context.read<TransportRequestProvider>().removeDocumentPath(i),
                                 ),
                               ),
                             );
@@ -134,7 +147,6 @@ class Step6Additional extends StatelessWidget {
                         const SizedBox(height: 8),
                       ],
 
-                      // ---- Instructions additionnelles ----
                       TextFormField(
                         controller: txt,
                         maxLines: 3,
@@ -142,18 +154,15 @@ class Step6Additional extends StatelessWidget {
                           labelText: 'Additional Instructions',
                           border: OutlineInputBorder(),
                         ),
-                        onChanged: (v) =>
-                            context.read<TransportRequestProvider>().setAdditionalInstructions(v),
                       ),
 
-                      const SizedBox(height: 300),
+                      const SizedBox(height: 40),
 
-                      // ---- Footer ----
                       Row(
                         children: [
-                          OutlinedButton(onPressed: onBack, child: const Text('Back')),
+                          OutlinedButton(onPressed: widget.onBack, child: const Text('Back')),
                           const Spacer(),
-                          ElevatedButton(onPressed: onNext, child: const Text('Continue  ↓')),
+                          ElevatedButton(onPressed: widget.onNext, child: const Text('Continue  ↓')),
                         ],
                       ),
                     ],

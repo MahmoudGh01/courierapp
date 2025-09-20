@@ -39,8 +39,14 @@ class Step4Vehicle extends StatelessWidget {
                       const SizedBox(height: 12),
 
                       // Vehicle Type
-                      Text('Vehicle Type', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                      // Vehicle Type
+                      Text(
+                        'Vehicle Type',
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                      ),
                       const SizedBox(height: 8),
+
+// Row 1
                       _optionRow(
                         context: context,
                         items: [
@@ -48,40 +54,118 @@ class Step4Vehicle extends StatelessWidget {
                             selected: p.dto.vehicleType == VehicleType.SEMI_TRAILER.name,
                             icon: Icons.local_shipping,
                             title: 'Semi-Trailer',
-                            subtitle: 'Truck for transporting large cargo.',
-                            onTap: () => context.read<TransportRequestProvider>().setVehicle(vehicleType: VehicleType.SEMI_TRAILER.name),
+                            subtitle: 'For transporting large cargo.',
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(
+                              vehicleType: VehicleType.SEMI_TRAILER.name,
+                            ),
                           ),
                           _VehicleOption(
-                            selected: p.dto.vehicleType == VehicleType.TRUCK.name,
+                            selected: p.dto.vehicleType == VehicleType.MEDIUM_TRUCK.name,
                             icon: Icons.fire_truck_outlined,
-                            title: 'Truck',
+                            title: 'Medium Truck',
                             subtitle: 'Heavy vehicle for bigger loads.',
-                            onTap: () => context.read<TransportRequestProvider>().setVehicle(vehicleType: VehicleType.TRUCK.name),
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(
+                              vehicleType: VehicleType.MEDIUM_TRUCK.name,
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
+
+// Row 2
                       _optionRow(
                         context: context,
                         items: [
                           _VehicleOption(
-                            selected: p.dto.vehicleType == VehicleType.VAN.name,
+                            selected: p.dto.vehicleType == VehicleType.LIGHT_TRUCK.name,
                             icon: Icons.local_shipping_outlined,
-                            title: 'Van',
-                            subtitle: 'Mid volume / city friendly.',
-                            onTap: () => context.read<TransportRequestProvider>().setVehicle(vehicleType: VehicleType.VAN.name),
+                            title: 'Light Truck',
+                            subtitle: 'Smaller truck for lighter cargo.',
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(
+                              vehicleType: VehicleType.LIGHT_TRUCK.name,
+                            ),
                           ),
                           _VehicleOption(
-                            selected: p.dto.vehicleType == VehicleType.PICKUP.name,
-                            icon: Icons.directions_car_filled_outlined,
-                            title: 'Pickup',
-                            subtitle: 'Light cargo, flexible access.',
-                            onTap: () => context.read<TransportRequestProvider>().setVehicle(vehicleType: VehicleType.PICKUP.name),
+                            selected: p.dto.vehicleType == VehicleType.VAN.name,
+                            icon: Icons.airport_shuttle_outlined,
+                            title: 'Van',
+                            subtitle: 'Mid volume / city friendly.',
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(
+                              vehicleType: VehicleType.VAN.name,
+                            ),
                           ),
                         ],
                       ),
+                      const SizedBox(height: 8),
 
-                      const SizedBox(height: 16),
+// Row 3
+                      _optionRow(
+                        context: context,
+                        items: [
+                          _VehicleOption(
+                            selected: p.dto.vehicleType == VehicleType.LIGHT_UTILITY_VEHICLE.name,
+                            icon: Icons.directions_car_filled_outlined,
+                            title: 'Light Utility Vehicle',
+                            subtitle: 'Light cargo, flexible access.',
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(
+                              vehicleType: VehicleType.LIGHT_UTILITY_VEHICLE.name,
+                            ),
+                          ),
+                          _VehicleOption(
+                            selected: p.dto.vehicleType == VehicleType.TANK_TRUCK.name,
+                            icon: Icons.local_gas_station,
+                            title: 'Tank Truck',
+                            subtitle: 'Liquids or fuel transport.',
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(
+                              vehicleType: VehicleType.TANK_TRUCK.name,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+
+// Row 4
+                      _optionRow(
+                        context: context,
+                        items: [
+                          _VehicleOption(
+                            selected: p.dto.vehicleType == VehicleType.REFRIGERATED_TRUCK.name,
+                            icon: Icons.ac_unit,
+                            title: 'Refrigerated Truck',
+                            subtitle: 'For temperature-sensitive goods.',
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(
+                              vehicleType: VehicleType.REFRIGERATED_TRUCK.name,
+                            ),
+                          ),
+                          _VehicleOption(
+                            selected: p.dto.vehicleType == VehicleType.ANY.name,
+                            icon: Icons.all_inclusive,
+                            title: 'Any Vehicle',
+                            subtitle: 'No specific requirement.',
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(
+                              vehicleType: VehicleType.ANY.name,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+
+// Row 5
+                      _optionRow(
+                        context: context,
+                        items: [
+                          _VehicleOption(
+                            selected: p.dto.vehicleType == VehicleType.OTHER.name,
+                            icon: Icons.help_outline,
+                            title: 'Other',
+                            subtitle: 'Custom or unspecified vehicle.',
+                            onTap: () => context.read<TransportRequestProvider>().setVehicle(
+                              vehicleType: VehicleType.OTHER.name,
+                            ),
+                          ),
+                          const _VehicleOption.spacer(),
+                        ],
+                      ),
 
                       // Loading Capacity
                       Text('Loading Capacity', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),

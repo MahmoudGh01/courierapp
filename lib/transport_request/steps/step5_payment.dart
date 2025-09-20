@@ -5,30 +5,52 @@ import '../../Theme/colors.dart';
 import '../../ViewModels/transport_request_provider.dart';
 import '../../Models/enums.dart';
 
-class Step5Payment extends StatelessWidget {
+class Step5Payment extends StatefulWidget {
   final VoidCallback onNext;
   final VoidCallback onBack;
   const Step5Payment({super.key, required this.onNext, required this.onBack});
+
+  @override
+  State<Step5Payment> createState() => _Step5PaymentState();
+}
+
+class _Step5PaymentState extends State<Step5Payment> {
+  late TextEditingController terms;
+
+  @override
+  void initState() {
+    super.initState();
+    final prov = context.read<TransportRequestProvider>();
+    terms = TextEditingController(text: prov.dto.otherTerms ?? '');
+
+    // keep provider in sync
+    terms.addListener(() {
+      prov.setPayment(terms: terms.text);
+    });
+  }
+
+  @override
+  void dispose() {
+    terms.dispose();
+    super.dispose();
+  }
+
+  Widget chip<T>(T current, T value, String label, void Function(T) onSet) {
+    final selected = current == value;
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (_) => onSet(value),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final p     = context.watch<TransportRequestProvider>();
     final theme = Theme.of(context);
 
-    // ⚠️ Controller reconstruit à chaque build : OK ici car on pousse dans le provider via onChanged()
-    final terms = TextEditingController(text: p.dto.otherTerms ?? '');
-
-    Widget chip<T>(T current, T value, String label, void Function(T) onSet) {
-      final selected = current == value;
-      return ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        onSelected: (_) => onSet(value),
-      );
-    }
-
     return Scaffold(
-      backgroundColor: kWhiteColor, // ✅ fond clair comme Step4
+      backgroundColor: kWhiteColor,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (ctx, constraints) {
@@ -41,15 +63,14 @@ class Step5Payment extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
 
-                      // ---- Titre ----
                       Text(
                         'Step 5 of 8 — Payment Method',
                         style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 12),
 
-                      // ---- Méthode de paiement ----
-                      Text('Payment Method', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                      Text('Payment Method',
+                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                       const SizedBox(height: 8),
                       Wrap(
                         spacing: 8,
@@ -58,7 +79,7 @@ class Step5Payment extends StatelessWidget {
                           chip<String>(
                             p.dto.paymentMethod,
                             PaymentMethod.CASH_ON_DELIVERY.name,
-                            'Cash on delivery.',
+                            'Cash on delivery',
                                 (v) => context.read<TransportRequestProvider>().setPayment(paymentMethod: v),
                           ),
                           chip<String>(
@@ -78,8 +99,8 @@ class Step5Payment extends StatelessWidget {
 
                       const SizedBox(height: 16),
 
-                      // ---- Condition de paiement ----
-                      Text('Payment Condition', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                      Text('Payment Condition',
+                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                       const SizedBox(height: 8),
                       Wrap(
                         spacing: 8,
@@ -88,7 +109,7 @@ class Step5Payment extends StatelessWidget {
                           chip<String>(
                             p.dto.paymentCondition,
                             PaymentCondition.PAYMENT_ON_RECEIPT.name,
-                            'Payment on receipt.',
+                            'Payment on receipt',
                                 (v) => context.read<TransportRequestProvider>().setPayment(paymentCondition: v),
                           ),
                           chip<String>(
@@ -106,9 +127,8 @@ class Step5Payment extends StatelessWidget {
                         ],
                       ),
 
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 40),
 
-                      // ---- Autres termes ----
                       TextFormField(
                         controller: terms,
                         maxLines: 3,
@@ -116,17 +136,14 @@ class Step5Payment extends StatelessWidget {
                           labelText: 'Other Terms (optional)',
                           border: OutlineInputBorder(),
                         ),
-                        onChanged: (v) => context.read<TransportRequestProvider>().setPayment(terms: v),
                       ),
+                      const SizedBox(height: 40),
 
-                      const SizedBox(height: 200),
-
-                      // ---- Footer ----
                       Row(
                         children: [
-                          OutlinedButton(onPressed: onBack, child: const Text('Back')),
+                          OutlinedButton(onPressed: widget.onBack, child: const Text('Back')),
                           const Spacer(),
-                          ElevatedButton(onPressed: onNext, child: const Text('Continue  ↓')),
+                          ElevatedButton(onPressed: widget.onNext, child: const Text('Continue  ↓')),
                         ],
                       ),
                     ],
