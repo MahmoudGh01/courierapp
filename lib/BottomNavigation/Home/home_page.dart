@@ -57,7 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
         "images/home3.png",
         locale.getGrocery,
         locale.getGroceryText,
-        null
+        PageRoutes.shipmentList,
+
       ),
     ];
     final List<Ad> ads = [
