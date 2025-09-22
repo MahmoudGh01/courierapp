@@ -1,14 +1,22 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:developer' as Log;
+import 'dart:io';
+
 import 'package:animation_wrappers/animation_wrappers.dart';
 import 'package:courier_app/Authentication/signin_navigator.dart';
 import 'package:courier_app/Components/continue_button.dart';
 import 'package:courier_app/Components/entry_field.dart';
 import 'package:courier_app/Theme/colors.dart';
 import 'package:courier_app/app_config/app_config.dart';
-import 'package:courier_app/app_settings/ui/language_sheet.dart';
 import 'package:courier_app/locale/locales.dart';
+import 'package:courier_app/utils/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 
 import '../../Service/Auth.dart';
+
 
 class LoginPage extends StatelessWidget {
   final VoidCallback onLoginSuccess;
@@ -21,7 +29,6 @@ class LoginPage extends StatelessWidget {
   }
 }
 
-
 class LoginBody extends StatefulWidget {
   final VoidCallback onLoginSuccess;
 
@@ -31,12 +38,17 @@ class LoginBody extends StatefulWidget {
   State<LoginBody> createState() => _LoginBodyState();
 }
 
-
 class _LoginBodyState extends State<LoginBody> {
+  final AuthService authService = AuthService();
+  late GoogleSignIn _googleSignIn;
+
   @override
   void initState() {
     super.initState();
-   /* WidgetsBinding.instance.addPostFrameCallback(
+    final GoogleSignIn signIn = GoogleSignIn.instance;
+    unawaited(
+        signIn.initialize(clientId: Constants.Android));
+    /* WidgetsBinding.instance.addPostFrameCallback(
       (timeStamp) {
         showModalBottomSheet(
           context: context,
@@ -45,20 +57,21 @@ class _LoginBodyState extends State<LoginBody> {
       },
     );*/
   }
+
+
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  final AuthService authService = AuthService();
+
   void loginUser() {
     authService.signInUser(
       context: context,
       email: emailController.text,
       password: passwordController.text,
       onLoginSuccess: widget.onLoginSuccess, // <<< pass it here
-
     );
-
   }
+
   @override
   Widget build(BuildContext context) {
     var locale = AppLocalizations.of(context);
@@ -112,10 +125,9 @@ class _LoginBodyState extends State<LoginBody> {
                           controller: emailController,
                           label: locale.emailText,
                           hint: locale.emailHint,
-
                         ),
                         EntryField(
-                          controller:   passwordController,
+                          controller: passwordController,
                           label: locale.passwordText,
                           hint: locale.passwordHint,
                           isPassword: true,
@@ -125,8 +137,7 @@ class _LoginBodyState extends State<LoginBody> {
                           radius: const BorderRadius.only(
                             topRight: Radius.circular(35.0),
                           ),
-                          onPressed: () =>
-                              loginUser(),
+                          onPressed: () => loginUser(),
                         ),
                         GestureDetector(
                           onTap: () {
@@ -138,19 +149,56 @@ class _LoginBodyState extends State<LoginBody> {
                             style: theme.textTheme.titleMedium,
                           ),
                         ),
-
-
+                        const SizedBox(height: 16.0),
+                        GestureDetector(
+                          onTap: () async {
+                            try {
+                              await signInWithGoogle();
+                            } catch (e) {
+                              print(e.toString());
+                              Log.log(e.toString());
+                              // TODO
+                            }
+                          },
+                          child: Text(
+                            "locale.googleSignIn",
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.titleMedium,
+                          ),
+                        ),
                         const SizedBox(height: 50.0),
                       ],
                     ),
                   )
                 ],
               ),
-
             ],
           ),
         ),
       ),
     );
   }
+
+  Future<void> signInWithGoogle() async {
+    try {
+      await _googleSignIn.signOut(); // optional: force account picker
+      final GoogleSignInAccount? googleUser = await _googleSignIn.attemptLightweightAuthentication();
+      if (googleUser == null) return; // user canceled
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      final String? idToken = googleAuth.idToken;
+      if (idToken != null) {
+        await authService.sendGoogleSignInDataToBackend(idToken, context);
+        widget.onLoginSuccess();
+      }
+    } catch (e) {
+      print("Google sign-in failed: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Google sign-in failed: $e")),
+      );
+    }
+  }
+
+
 }

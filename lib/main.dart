@@ -2,6 +2,7 @@ import 'package:courier_app/Authentication/signin_navigator.dart';
 import 'package:courier_app/Routes/routes.dart';
 import 'package:courier_app/Theme/colors.dart';
 import 'package:courier_app/Theme/style.dart';
+import 'package:courier_app/ViewModels/shipment_provider.dart';
 import 'package:courier_app/app_settings/bloc/language_cubit.dart';
 import 'package:courier_app/locale/locales.dart';
 import 'package:courier_app/map_utils.dart';
@@ -36,6 +37,7 @@ void main() async {
           ChangeNotifierProvider(create: (_) => QuickRequestProvider()),
           ChangeNotifierProvider(create: (_) => TransportRequestProvider()),
           ChangeNotifierProvider(create: (_) => OfferProvider()),
+          ChangeNotifierProvider(create: (_) => ShipmentProvider()),
 
         ],
         child: BlocProvider<LanguageCubit>(

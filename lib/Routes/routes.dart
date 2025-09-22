@@ -1,6 +1,7 @@
 import 'package:courier_app/BottomNavigation/Account/add_money_page.dart';
 import 'package:courier_app/BottomNavigation/Account/privacy_policy_page.dart';
 import 'package:courier_app/BottomNavigation/Account/wallet_page.dart';
+import 'package:courier_app/Shipments/shipment_list.dart';
 import 'package:courier_app/arrange_delivery/UI/arrange_delivery.dart';
 import 'package:courier_app/arrange_delivery/UI/measurement.dart';
 import 'package:courier_app/Authentication/signin_navigator.dart';
@@ -48,6 +49,7 @@ class PageRoutes {
   static const String walletPage = 'wallet';
   static const String addMoneyPage = 'add_money';
   static const String privacyPolicyPage = 'privacy_policy';
+  static const String shipmentList = 'shipment_list';
 
   Map<String, WidgetBuilder> routes() {
     return {
@@ -69,6 +71,7 @@ class PageRoutes {
       walletPage: (context) => const WalletPage(),
       addMoneyPage: (context) => const AddMoneyPage(),
       privacyPolicyPage: (context) => const PrivacyPolicyPage(),
+      shipmentList: (context) => const ShipmentListPage(),
     };
   }
 }

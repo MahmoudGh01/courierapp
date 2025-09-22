@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:courier_app/Authentication/signin_navigator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,7 +14,6 @@ import '../Routes/routes.dart';
 import '../ViewModels/userprovider.dart';
 import '../utils/constants.dart';
 import '../utils/utils.dart';
-
 
 class AuthService extends GetxController {
   var isAuthenticated = false.obs;
@@ -50,7 +50,8 @@ class AuthService extends GetxController {
         // only include company fields if isCompany == true and not empty
         if (isCompany && (companyName?.trim().isNotEmpty ?? false))
           'companyName': companyName!.trim(),
-        if (isCompany && (companyRegistrationNumber?.trim().isNotEmpty ?? false))
+        if (isCompany &&
+            (companyRegistrationNumber?.trim().isNotEmpty ?? false))
           'companyRegistrationNumber': companyRegistrationNumber!.trim(),
       };
 
@@ -61,11 +62,14 @@ class AuthService extends GetxController {
       );
 
       if (res.statusCode == 200 || res.statusCode == 201) {
-        showSnackBar(context, 'Account created. Please check your email to verify your account.');
-        navigatorKey.currentState?.pushReplacementNamed(SignInRoutes.signInRoot);
+        showSnackBar(context,
+            'Account created. Please check your email to verify your account.');
+        navigatorKey.currentState
+            ?.pushReplacementNamed(SignInRoutes.signInRoot);
       } else {
         final body = res.body.isNotEmpty ? jsonDecode(res.body) : {};
-        final msg = body['message']?.toString() ?? 'Sign-up failed (${res.statusCode})';
+        final msg =
+            body['message']?.toString() ?? 'Sign-up failed (${res.statusCode})';
         showSnackBar(context, msg);
       }
     } catch (e) {
@@ -73,14 +77,11 @@ class AuthService extends GetxController {
     }
   }
 
-
-
   Future<void> signInUser({
     required BuildContext context,
     required String email,
     required String password,
     required VoidCallback onLoginSuccess,
-
   }) async {
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
@@ -108,7 +109,8 @@ class AuthService extends GetxController {
         onLoginSuccess();
       } else {
         final body = res.body.isNotEmpty ? jsonDecode(res.body) : {};
-        final msg = body['detail']?.toString() ?? 'Login failed (${res.statusCode})';
+        final msg =
+            body['detail']?.toString() ?? 'Login failed (${res.statusCode})';
 
         // Common backend message for unverified users
         if (msg.toLowerCase().contains('not verified')) {
@@ -117,7 +119,6 @@ class AuthService extends GetxController {
           showSnackBar(context, msg);
         }
       }
-
     } catch (e) {
       showSnackBar(context, e.toString());
     }
@@ -130,8 +131,6 @@ class AuthService extends GetxController {
     await prefs.setBool('isLoggedIn', false);
 
     isAuthenticated.value = false;
-
-
   }
 
   Future<void> otpverif({
@@ -251,26 +250,22 @@ class AuthService extends GetxController {
   }
 
   Future<void> sendGoogleSignInDataToBackend(
-      String code,
-      BuildContext context,
-      ) async {
-    final uri = Uri.parse('${Constants.uri}/google-sign-in');
-    final platform = Platform.isAndroid ? 'android' : 'ios';
-
+    String code,
+    BuildContext context,
+  ) async {
     final response = await http.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'code': code, 'platform': platform}),
+      Uri.parse("${Constants.uri}auth/google"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"idToken": code}),
     );
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       userProvider.setUser(data['user']);
 
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', data['token']);
-      await prefs.setString('refresh', data['refresh']);
+      await prefs.setString('token', data['token'] ?? '');
+      await prefs.setString('refresh', data['refreshToken'] ?? ''); // NEW
       await prefs.setBool('isLoggedIn', true);
 
       isAuthenticated.value = true;
@@ -279,13 +274,16 @@ class AuthService extends GetxController {
     }
   }
 
+
+
+
+
   Future<void> sendFBSignInDataToBackend(
-      String token,
-      BuildContext context,
-      ) async {
-    final endpoint = Platform.isAndroid
-        ? "/facebook-sign-in-android"
-        : "/facebook-sign-in";
+    String token,
+    BuildContext context,
+  ) async {
+    final endpoint =
+        Platform.isAndroid ? "/facebook-sign-in-android" : "/facebook-sign-in";
     final uri = Uri.parse('${Constants.uri}$endpoint');
 
     final response = await http.post(
@@ -313,9 +311,9 @@ class AuthService extends GetxController {
   }
 
   Future<void> sendPhoneSignInDataToBackend(
-      String phoneNumber,
-      BuildContext context,
-      ) async {
+    String phoneNumber,
+    BuildContext context,
+  ) async {
     final uri = Uri.parse('${Constants.uri}/phone-sign-in');
 
     final response = await http.post(

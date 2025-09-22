@@ -3,4 +3,6 @@ class Constants {
   static String uri = 'http://172.20.10.3:8089/sheapit/';
   //static String? uri = dotenv.env['DOMAIN'];
   static const String googleApiKey = 'AIzaSyAThmEEZoKYYftRnoM18-MMUQuYEPucJXY';
+  static const String Android = '780473680176-rithrpkcshakv2m4j9etkcsi97ctg26i.apps.googleusercontent.com';
+
 }
